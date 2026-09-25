@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, Moon, Sun, X } from "lucide-react";
 
 const navigationItems = [
@@ -15,6 +15,23 @@ export default function DashboardHeader({
   onDarkModeToggle,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedDate = currentTime.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+  const formattedTime = currentTime.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   function handleSectionChange(sectionId) {
     onSectionChange(sectionId);
@@ -99,6 +116,10 @@ export default function DashboardHeader({
           <div className="flex items-center gap-2.5 text-sm text-stone-600 dark:text-stone-400">
             <span className="h-2 w-2 rounded-full bg-emerald-700 dark:bg-emerald-500" />
             <span className="font-medium">Home online</span>
+            <span className="hidden text-stone-400 sm:inline dark:text-stone-600">·</span>
+            <span className="hidden text-xs text-stone-500 sm:inline dark:text-stone-400">
+              {formattedDate} · {formattedTime}
+            </span>
           </div>
         </div>
       </div>

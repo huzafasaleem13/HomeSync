@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Search } from "lucide-react";
 
 const cameras = [
   {
@@ -24,20 +25,79 @@ const cameras = [
   },
 ];
 
-const events = [
-  { time: "8:42 PM", text: "Front door locked", type: "Secure" },
-  { time: "7:16 PM", text: "Garage motion detected", type: "Activity" },
-  { time: "6:58 PM", text: "Garden camera online", type: "System" },
+const initialEvents = [
+  { id: 1, time: "8:42 PM", text: "Front door locked", type: "Secure" },
+  { id: 2, time: "7:16 PM", text: "Garage motion detected", type: "Activity" },
+  { id: 3, time: "6:58 PM", text: "Garden camera online", type: "System" },
+  { id: 4, time: "5:30 PM", text: "Keypad access granted (Master)", type: "Secure" },
+  { id: 5, time: "4:12 PM", text: "Driveway vehicle arrived", type: "Activity" },
+  { id: 6, time: "2:45 PM", text: "Firmware integrity verified", type: "System" },
+  { id: 7, time: "1:20 PM", text: "Back garden perimeter clear", type: "Activity" },
+  { id: 8, time: "11:05 AM", text: "Perimeter armed successfully", type: "Secure" },
 ];
+
+const categories = ["All", "Secure", "Activity", "System"];
 
 export default function SecurityPanel() {
   const [isHomeArmed, setIsHomeArmed] = useState(true);
   const [isFrontDoorLocked, setIsFrontDoorLocked] = useState(true);
   const [selectedCameraId, setSelectedCameraId] = useState("front-door");
+  const [events, setEvents] = useState(initialEvents);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
 
   const selectedCamera = cameras.find(
     (camera) => camera.id === selectedCameraId,
   );
+
+  const toggleArmSystem = () => {
+    const nextState = !isHomeArmed;
+    setIsHomeArmed(nextState);
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    const newEvent = {
+      id: Date.now(),
+      time: timeStr,
+      text: nextState ? "System armed by user" : "System disarmed by user",
+      type: "Secure",
+    };
+
+    setEvents((prev) => [newEvent, ...prev]);
+  };
+
+  const toggleDoorLock = () => {
+    const nextState = !isFrontDoorLocked;
+    setIsFrontDoorLocked(nextState);
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    const newEvent = {
+      id: Date.now(),
+      time: timeStr,
+      text: nextState ? "Front door locked manually" : "Front door unlocked manually",
+      type: "Secure",
+    };
+
+    setEvents((prev) => [newEvent, ...prev]);
+  };
+
+  const filteredEvents = events.filter((event) => {
+    const matchesCategory =
+      activeFilter === "All" || event.type === activeFilter;
+    const matchesSearch =
+      event.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.type.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <section>
@@ -142,7 +202,7 @@ export default function SecurityPanel() {
 
               <button
                 type="button"
-                onClick={() => setIsHomeArmed((isArmed) => !isArmed)}
+                onClick={toggleArmSystem}
                 aria-pressed={isHomeArmed}
                 className={`min-w-20 border px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
                   isHomeArmed
@@ -166,7 +226,7 @@ export default function SecurityPanel() {
 
               <button
                 type="button"
-                onClick={() => setIsFrontDoorLocked((isLocked) => !isLocked)}
+                onClick={toggleDoorLock}
                 aria-pressed={isFrontDoorLocked}
                 className={`min-w-20 border px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
                   isFrontDoorLocked
@@ -180,24 +240,73 @@ export default function SecurityPanel() {
           </div>
 
           <div className="mt-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
-              Recent events
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                Access log
+              </p>
+              <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">
+                {filteredEvents.length} events
+              </span>
+            </div>
 
-            <ol className="mt-4 space-y-4">
-              {events.map((event) => (
-                <li key={`${event.time}-${event.text}`} className="flex gap-3">
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-stone-500 dark:bg-stone-400" />
-                  <div>
-                    <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
-                      {event.text}
-                    </p>
-                    <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                      {event.time} · {event.type}
-                    </p>
-                  </div>
-                </li>
+            {/* Search Input */}
+            <div className="relative mt-3">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search log..."
+                className="w-full border border-stone-300 bg-white py-1.5 pl-8 pr-3 text-xs text-stone-900 placeholder-stone-400 focus:border-stone-600 focus:outline-none dark:border-stone-700 dark:bg-[#1c1917] dark:text-stone-100"
+              />
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="mt-2.5 flex flex-wrap gap-1">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveFilter(cat)}
+                  className={`border px-2 py-0.5 text-[11px] font-semibold transition-colors duration-200 ${
+                    activeFilter === cat
+                      ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                      : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                  }`}
+                >
+                  {cat}
+                </button>
               ))}
+            </div>
+
+            <ol className="mt-4 max-h-60 space-y-3.5 overflow-y-auto pr-1">
+              {filteredEvents.length === 0 ? (
+                <p className="py-4 text-center text-xs text-stone-500 dark:text-stone-400">
+                  No matching events found.
+                </p>
+              ) : (
+                filteredEvents.map((event) => (
+                  <li key={event.id} className="flex gap-2.5">
+                    <span
+                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                        event.type === "Secure"
+                          ? "bg-emerald-600 dark:bg-emerald-400"
+                          : event.type === "Activity"
+                          ? "bg-amber-600 dark:bg-amber-400"
+                          : "bg-stone-400 dark:bg-stone-500"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-stone-800 dark:text-stone-200">
+                        {event.text}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400">
+                        {event.time} · {event.type}
+                      </p>
+                    </div>
+                  </li>
+                ))
+              )}
             </ol>
           </div>
         </aside>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Clock, Pencil, Plus, Trash2, X } from "lucide-react";
 
 const initialScenes = [
   {
@@ -44,6 +44,43 @@ const colorOptions = [
   { label: "Soft mint", value: "bg-[#c2d0ca]" },
 ];
 
+const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function formatScheduleString(triggerType, days, time) {
+  if (triggerType === "manual") {
+    return "Manual activation";
+  }
+
+  let daysText;
+  if (days.length === 7) {
+    daysText = "Daily";
+  } else if (
+    days.length === 5 &&
+    ["Mon", "Tue", "Wed", "Thu", "Fri"].every((d) => days.includes(d))
+  ) {
+    daysText = "Weekdays";
+  } else if (
+    days.length === 2 &&
+    ["Sat", "Sun"].every((d) => days.includes(d))
+  ) {
+    daysText = "Weekends";
+  } else if (days.length === 0) {
+    daysText = "No days set";
+  } else {
+    daysText = DAYS_OF_WEEK.filter((d) => days.includes(d)).join(", ");
+  }
+
+  if (!time) return daysText;
+  const [hoursStr, minutesStr] = time.split(":");
+  let hours = parseInt(hoursStr, 10);
+  const minutes = minutesStr || "00";
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const timeText = `${hours}:${minutes} ${ampm}`;
+
+  return `${daysText} · ${timeText}`;
+}
+
 export default function SmartScenes() {
   const [sceneList, setSceneList] = useState(initialScenes);
   const [activeSceneId, setActiveSceneId] = useState(null);
@@ -54,14 +91,18 @@ export default function SmartScenes() {
   const [newScene, setNewScene] = useState({
     name: "",
     description: "",
-    schedule: "",
+    triggerType: "scheduled",
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    time: "07:00",
     color: "bg-[#b9c4ac]",
   });
 
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
-    schedule: "",
+    triggerType: "scheduled",
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    time: "07:00",
     color: "bg-[#b9c4ac]",
   });
 
@@ -75,13 +116,19 @@ export default function SmartScenes() {
     e.preventDefault();
     if (!newScene.name.trim()) return;
 
+    const formattedSchedule = formatScheduleString(
+      newScene.triggerType,
+      newScene.days,
+      newScene.time,
+    );
+
     const createdScene = {
       id: `custom-${Date.now()}`,
       name: newScene.name.trim(),
       description: newScene.description.trim(),
-      schedule: newScene.schedule.trim() || "Manual activation",
+      schedule: formattedSchedule,
       color: newScene.color,
-      status: "Ready",
+      status: newScene.triggerType === "scheduled" ? "Scheduled" : "Ready",
       isCustom: true,
     };
 
@@ -89,7 +136,9 @@ export default function SmartScenes() {
     setNewScene({
       name: "",
       description: "",
-      schedule: "",
+      triggerType: "scheduled",
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      time: "07:00",
       color: "bg-[#b9c4ac]",
     });
     setIsCreating(false);
@@ -98,10 +147,21 @@ export default function SmartScenes() {
   const startEditing = (scene) => {
     setEditingSceneId(scene.id);
     setDeletingSceneId(null);
+
+    const isManual = scene.schedule.includes("Manual");
+    let detectedDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+    if (scene.schedule.includes("Daily")) {
+      detectedDays = [...DAYS_OF_WEEK];
+    } else if (scene.schedule.includes("Weekends")) {
+      detectedDays = ["Sat", "Sun"];
+    }
+
     setEditForm({
       name: scene.name,
       description: scene.description,
-      schedule: scene.schedule,
+      triggerType: isManual ? "manual" : "scheduled",
+      days: detectedDays,
+      time: "19:30",
       color: scene.color,
     });
   };
@@ -110,6 +170,12 @@ export default function SmartScenes() {
     e.preventDefault();
     if (!editForm.name.trim()) return;
 
+    const formattedSchedule = formatScheduleString(
+      editForm.triggerType,
+      editForm.days,
+      editForm.time,
+    );
+
     setSceneList((prev) =>
       prev.map((scene) =>
         scene.id === editingSceneId
@@ -117,8 +183,9 @@ export default function SmartScenes() {
               ...scene,
               name: editForm.name.trim(),
               description: editForm.description.trim(),
-              schedule: editForm.schedule.trim() || "Manual activation",
+              schedule: formattedSchedule,
               color: editForm.color,
+              status: editForm.triggerType === "scheduled" ? "Scheduled" : "Ready",
             }
           : scene,
       ),
@@ -132,6 +199,24 @@ export default function SmartScenes() {
       setActiveSceneId(null);
     }
     setDeletingSceneId(null);
+  };
+
+  const toggleDay = (day, isEdit = false) => {
+    if (isEdit) {
+      setEditForm((prev) => ({
+        ...prev,
+        days: prev.days.includes(day)
+          ? prev.days.filter((d) => d !== day)
+          : [...prev.days, day],
+      }));
+    } else {
+      setNewScene((prev) => ({
+        ...prev,
+        days: prev.days.includes(day)
+          ? prev.days.filter((d) => d !== day)
+          : [...prev.days, day],
+      }));
+    }
   };
 
   const activeScene = sceneList.find((scene) => scene.id === activeSceneId);
@@ -212,19 +297,93 @@ export default function SmartScenes() {
 
             <div>
               <label className="block text-xs font-medium text-stone-600 dark:text-stone-400">
-                Schedule / trigger
+                Activation mode
               </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Weekdays · 2:00 PM or Manual"
-                value={newScene.schedule}
-                onChange={(e) =>
-                  setNewScene({ ...newScene, schedule: e.target.value })
-                }
-                className="mt-1.5 w-full border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-stone-600 focus:outline-none dark:border-stone-700 dark:bg-[#1c1917] dark:text-stone-100"
-              />
+              <div className="mt-1.5 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNewScene({ ...newScene, triggerType: "scheduled" })
+                  }
+                  className={`border px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
+                    newScene.triggerType === "scheduled"
+                      ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                      : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                  }`}
+                >
+                  Scheduled time
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNewScene({ ...newScene, triggerType: "manual" })
+                  }
+                  className={`border px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
+                    newScene.triggerType === "manual"
+                      ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                      : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                  }`}
+                >
+                  Manual on demand
+                </button>
+              </div>
             </div>
+
+            {newScene.triggerType === "scheduled" && (
+              <div className="sm:col-span-2 border border-stone-300 bg-white/60 p-3.5 dark:border-stone-700 dark:bg-[#1c1917]/60">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+                      Active days
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {DAYS_OF_WEEK.map((day) => {
+                        const isDayActive = newScene.days.includes(day);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(day, false)}
+                            className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                              isDayActive
+                                ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                                : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+                      Trigger time
+                    </label>
+                    <input
+                      type="time"
+                      value={newScene.time}
+                      onChange={(e) =>
+                        setNewScene({ ...newScene, time: e.target.value })
+                      }
+                      className="mt-2 border border-stone-300 bg-white px-2.5 py-1 text-xs font-medium text-stone-900 focus:border-stone-600 focus:outline-none dark:border-stone-700 dark:bg-[#201d1b] dark:text-stone-100"
+                    />
+                  </div>
+                </div>
+
+                <p className="mt-3 text-xs text-stone-500 dark:text-stone-400">
+                  Schedule preview:{" "}
+                  <span className="font-semibold text-stone-800 dark:text-stone-200">
+                    {formatScheduleString(
+                      newScene.triggerType,
+                      newScene.days,
+                      newScene.time,
+                    )}
+                  </span>
+                </p>
+              </div>
+            )}
 
             <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-stone-600 dark:text-stone-400">
@@ -327,18 +486,78 @@ export default function SmartScenes() {
 
                   <div>
                     <label className="block text-[11px] font-medium text-stone-600 dark:text-stone-400">
-                      Schedule
+                      Activation mode
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={editForm.schedule}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, schedule: e.target.value })
-                      }
-                      className="mt-1 w-full border border-stone-300 bg-white px-2.5 py-1.5 text-sm text-stone-900 focus:border-stone-600 focus:outline-none dark:border-stone-700 dark:bg-[#1c1917] dark:text-stone-100"
-                    />
+                    <div className="mt-1 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditForm({ ...editForm, triggerType: "scheduled" })
+                        }
+                        className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                          editForm.triggerType === "scheduled"
+                            ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                            : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                        }`}
+                      >
+                        Scheduled
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditForm({ ...editForm, triggerType: "manual" })
+                        }
+                        className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                          editForm.triggerType === "manual"
+                            ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                            : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                        }`}
+                      >
+                        Manual
+                      </button>
+                    </div>
                   </div>
+
+                  {editForm.triggerType === "scheduled" && (
+                    <div className="border border-stone-300 bg-white/60 p-2.5 dark:border-stone-700 dark:bg-[#1c1917]/60">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+                        Days & Time
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {DAYS_OF_WEEK.map((day) => {
+                          const isDayActive = editForm.days.includes(day);
+                          return (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => toggleDay(day, true)}
+                              className={`border px-2 py-0.5 text-[11px] font-semibold transition-colors duration-200 ${
+                                isDayActive
+                                  ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                                  : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                          Time:
+                        </span>
+                        <input
+                          type="time"
+                          value={editForm.time}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, time: e.target.value })
+                          }
+                          className="border border-stone-300 bg-white px-2 py-0.5 text-xs text-stone-900 dark:border-stone-700 dark:bg-[#201d1b] dark:text-stone-100"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-[11px] font-medium text-stone-600 dark:text-stone-400">
@@ -480,9 +699,10 @@ export default function SmartScenes() {
               </p>
 
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-stone-300 pt-4 dark:border-stone-700">
-                <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                  {scene.schedule}
-                </p>
+                <div className="flex items-center gap-1.5 text-xs font-medium text-stone-500 dark:text-stone-400">
+                  <Clock className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+                  <span>{scene.schedule}</span>
+                </div>
 
                 <button
                   type="button"

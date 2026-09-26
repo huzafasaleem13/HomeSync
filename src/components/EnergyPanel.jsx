@@ -258,23 +258,31 @@ export default function EnergyPanel() {
                 const consH = Math.max(4, Math.round((point.consumption / maxVal) * 100));
 
                 return (
-                  <div key={point.label} className="group relative flex flex-1 flex-col items-center h-full justify-end">
+                  <div key={point.label} className="group relative flex h-full flex-1 flex-col items-center justify-end">
                     {/* Tooltip on hover */}
                     <div className="pointer-events-none absolute -top-8 z-10 hidden whitespace-nowrap border border-stone-400 bg-[#f5f1e8] px-2 py-1 text-[10px] font-semibold text-stone-800 shadow-sm group-hover:block dark:border-stone-600 dark:bg-[#201d1b] dark:text-stone-200">
                       Solar: {point.solar} {currentChart.unit} · Use: {point.consumption} {currentChart.unit}
                     </div>
 
-                    <div className="flex w-full items-end justify-center gap-1 sm:gap-2">
+                    {/* Bars column with fixed height */}
+                    <div className="flex h-36 w-full items-end justify-center gap-1.5 sm:gap-2.5">
                       {/* Solar bar */}
                       <div
-                        className="w-1/2 max-w-[20px] bg-[#d8c5a8] transition-all duration-300 dark:bg-[#c5b9aa]"
-                        style={{ height: `${solarH}%` }}
+                        className="w-3 sm:w-4 bg-[#d8c5a8] transition-all duration-300 dark:bg-[#d8c5a8]"
+                        style={{
+                          height: `${point.solar > 0 ? solarH : 2}%`,
+                          minHeight: point.solar > 0 ? "4px" : "2px",
+                          opacity: point.solar > 0 ? 1 : 0.35,
+                        }}
                         title={`Solar: ${point.solar} ${currentChart.unit}`}
                       />
                       {/* Consumption bar */}
                       <div
-                        className="w-1/2 max-w-[20px] bg-stone-700 transition-all duration-300 dark:bg-stone-300"
-                        style={{ height: `${consH}%` }}
+                        className="w-3 sm:w-4 bg-stone-700 transition-all duration-300 dark:bg-stone-300"
+                        style={{
+                          height: `${point.consumption > 0 ? consH : 2}%`,
+                          minHeight: point.consumption > 0 ? "4px" : "2px",
+                        }}
                         title={`Consumption: ${point.consumption} ${currentChart.unit}`}
                       />
                     </div>

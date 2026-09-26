@@ -1,6 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { ContactShadows, Html, OrbitControls } from "@react-three/drei";
 import { useState } from "react";
+import { Minus, Plus } from "lucide-react";
 
 const rooms = [
   {
@@ -85,6 +86,13 @@ export default function SmartHomeScene({ darkMode }) {
     bathroom: false,
     entrance: true,
   });
+  const [temperatures, setTemperatures] = useState({
+    living: 23,
+    kitchen: 24,
+    bedroom: 22,
+    bathroom: 25,
+    entrance: 21,
+  });
 
   const selectedRoom = rooms.find((room) => room.id === selectedRoomId);
 
@@ -93,6 +101,17 @@ export default function SmartHomeScene({ darkMode }) {
       ...currentLights,
       [selectedRoomId]: !currentLights[selectedRoomId],
     }));
+  }
+
+  function adjustTemperature(delta) {
+    setTemperatures((current) => {
+      const currentVal = current[selectedRoomId] ?? 22;
+      const nextVal = Math.min(32, Math.max(16, currentVal + delta));
+      return {
+        ...current,
+        [selectedRoomId]: nextVal,
+      };
+    });
   }
 
   const canvasBg = darkMode ? "#292524" : "#e7e2d7";
@@ -215,7 +234,7 @@ export default function SmartHomeScene({ darkMode }) {
                         <div className="font-semibold">{room.name}</div>
                         {isHovered && (
                           <div className="mt-1 flex items-center gap-1.5 border-t border-stone-200/80 pt-1 text-[11px] font-medium text-stone-500 dark:border-stone-700/80 dark:text-stone-400">
-                            <span>{room.temperature}</span>
+                            <span>{temperatures[room.id]}°C</span>
                             <span>·</span>
                             <span>{room.devices}</span>
                           </div>
@@ -279,9 +298,27 @@ export default function SmartHomeScene({ darkMode }) {
           <div className="mt-6 space-y-4 border-y border-stone-300 py-5 dark:border-stone-700">
             <div className="flex items-center justify-between text-sm">
               <span className="text-stone-500 dark:text-stone-400">Temperature</span>
-              <span className="font-semibold text-stone-800 dark:text-stone-200">
-                {selectedRoom.temperature}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => adjustTemperature(-1)}
+                  className="flex h-6 w-6 items-center justify-center border border-stone-300 text-stone-600 transition-colors hover:bg-stone-200 hover:text-stone-900 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700 dark:hover:text-stone-100"
+                  aria-label="Decrease temperature"
+                >
+                  <Minus className="h-3 w-3" />
+                </button>
+                <span className="min-w-10 text-center font-semibold text-stone-800 dark:text-stone-200">
+                  {temperatures[selectedRoomId]}°C
+                </span>
+                <button
+                  type="button"
+                  onClick={() => adjustTemperature(1)}
+                  className="flex h-6 w-6 items-center justify-center border border-stone-300 text-stone-600 transition-colors hover:bg-stone-200 hover:text-stone-900 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700 dark:hover:text-stone-100"
+                  aria-label="Increase temperature"
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between text-sm">

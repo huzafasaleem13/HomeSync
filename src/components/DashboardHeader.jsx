@@ -6,6 +6,7 @@ const navigationItems = [
   { id: "scenes", label: "Scenes" },
   { id: "security", label: "Security" },
   { id: "energy", label: "Energy" },
+  { id: "settings", label: "Settings" },
 ];
 
 export default function DashboardHeader({

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import DashboardHeader from "./components/DashboardHeader";
 import EnergyPanel from "./components/EnergyPanel";
 import SecurityPanel from "./components/SecurityPanel";
+import SettingsPanel from "./components/SettingsPanel";
 import SmartHomeScene from "./components/SmartHomeScene";
 import SmartScenes from "./components/SmartScenes";
 
@@ -35,6 +36,10 @@ export default function App() {
     );
   }, []);
 
+  const addNotification = useCallback((notification) => {
+    setNotifications((current) => [notification, ...current]);
+  }, []);
+
   return (
     <div
       className={`min-h-screen bg-[#f2eee5] text-stone-900 dark:bg-[#1c1917] dark:text-stone-100 ${darkMode ? "dark" : ""}`}
@@ -58,6 +63,14 @@ export default function App() {
           {activeSection === "security" && <SecurityPanel />}
 
           {activeSection === "energy" && <EnergyPanel />}
+
+          {activeSection === "settings" && (
+            <SettingsPanel
+              darkMode={darkMode}
+              onDarkModeToggle={() => setDarkMode((d) => !d)}
+              onAddNotification={addNotification}
+            />
+          )}
         </div>
       </main>
     </div>

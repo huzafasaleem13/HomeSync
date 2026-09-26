@@ -13,7 +13,9 @@ import {
   Leaf,
   Lightbulb,
   Minus,
+  PiggyBank,
   Plus,
+  Receipt,
   Sun,
   Target,
   TrendingDown,
@@ -293,6 +295,41 @@ export default function EnergyPanel() {
   const totalApplianceKw = appliances.reduce((sum, a) => sum + a.currentKw, 0).toFixed(2);
   const totalApplianceKwh = appliances.reduce((sum, a) => sum + a.todayKwh, 0).toFixed(1);
   const ecoOptimizedCount = appliances.filter((a) => a.ecoOptimized).length;
+
+  // Financial telemetry state
+  const [currencyCode, setCurrencyCode] = useState("USD");
+  const [electricityRate, setElectricityRate] = useState(0.18); // Base rate in USD per kWh
+
+  const currencyConfig = {
+    USD: { symbol: "$", rate: 1.0, label: "USD ($)" },
+    EUR: { symbol: "€", rate: 0.92, label: "EUR (€)" },
+    GBP: { symbol: "£", rate: 0.79, label: "GBP (£)" },
+  };
+
+  const tariffPresets = [
+    { label: "Off-Peak", rate: 0.11 },
+    { label: "Eco Green", rate: 0.15 },
+    { label: "Standard", rate: 0.18 },
+    { label: "Peak TOU", rate: 0.28 },
+  ];
+
+  const curr = currencyConfig[currencyCode];
+  const activeRate = electricityRate * curr.rate;
+  const fmt = (val) => `${curr.symbol}${val.toFixed(2)}`;
+
+  // Today's financials
+  const todayGridKwh = 6.2;
+  const todaySolarKwh = 18.4;
+  const todaySolarSavings = todaySolarKwh * activeRate;
+  const todayNetCost = todayGridKwh * activeRate;
+
+  // Monthly financials
+  const monthSolarKwh = 528.0;
+  const monthSolarSavings = monthSolarKwh * activeRate;
+  const projectedMonthGrossCost = projectedUsage * activeRate;
+  const projectedMonthNetCost = projectedUsage * 0.38 * activeRate;
+  const projectedMonthSavings = projectedMonthGrossCost - projectedMonthNetCost;
+  const monthCo2SavedKg = Math.round(monthSolarKwh * 0.385);
 
   const selectedZone = energyZones.find((zone) => zone.id === selectedZoneId);
   const currentChart = chartData[timeframe];
@@ -958,6 +995,205 @@ export default function EnergyPanel() {
               ))}
             </div>
           </div>
+
+          {/* Cost Estimation & Solar Savings Card */}
+          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+              <div className="flex items-center gap-2.5">
+                <Receipt className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                    Financial analytics
+                  </p>
+                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    Cost estimation & solar savings
+                  </h3>
+                </div>
+              </div>
+
+              {/* Currency Selector */}
+              <div className="flex items-center gap-1">
+                <span className="mr-1 text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Currency:
+                </span>
+                {["USD", "EUR", "GBP"].map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setCurrencyCode(code)}
+                    className={`border px-2 py-0.5 text-xs font-semibold transition-colors duration-200 ${
+                      currencyCode === code
+                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                        : "border-stone-300 bg-white text-stone-600 hover:bg-stone-200/70 dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-400 dark:hover:bg-stone-700"
+                    }`}
+                  >
+                    {currencyConfig[code].symbol} {code}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tariff Selector & Rate Adjuster */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="mr-1 text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Utility tariff:
+                </span>
+                {tariffPresets.map((t) => (
+                  <button
+                    key={t.label}
+                    type="button"
+                    onClick={() => setElectricityRate(t.rate)}
+                    className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                      Math.abs(electricityRate - t.rate) < 0.001
+                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                        : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                    }`}
+                  >
+                    {t.label} ({curr.symbol}{(t.rate * curr.rate).toFixed(2)})
+                  </button>
+                ))}
+              </div>
+
+              {/* Fine Rate Stepper */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-stone-500 dark:text-stone-400">Rate:</span>
+                <span className="font-semibold text-stone-900 dark:text-stone-100">
+                  {curr.symbol}{activeRate.toFixed(3)}/kWh
+                </span>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setElectricityRate((prev) => Math.max(0.05, +(prev - 0.01).toFixed(2)))
+                    }
+                    aria-label="Decrease electricity tariff rate by 1 cent"
+                    className="flex h-5 w-5 items-center justify-center border border-stone-300 bg-white text-stone-700 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                  >
+                    <Minus className="h-2.5 w-2.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setElectricityRate((prev) => Math.min(0.60, +(prev + 0.01).toFixed(2)))
+                    }
+                    aria-label="Increase electricity tariff rate by 1 cent"
+                    className="flex h-5 w-5 items-center justify-center border border-stone-300 bg-white text-stone-700 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                  >
+                    <Plus className="h-2.5 w-2.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Overview 4-Metric Grid */}
+            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {/* Today's Estimated Cost */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Today&apos;s net cost
+                </p>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {fmt(todayNetCost)}
+                  </span>
+                </div>
+                <p className="mt-2 text-[11px] text-stone-500 dark:text-stone-400">
+                  Imported: {todayGridKwh} kWh
+                </p>
+              </div>
+
+              {/* Today's Solar Savings */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Today&apos;s solar value
+                </p>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-400">
+                    +{fmt(todaySolarSavings)}
+                  </span>
+                </div>
+                <p className="mt-2 text-[11px] text-stone-500 dark:text-stone-400">
+                  Produced: {todaySolarKwh} kWh
+                </p>
+              </div>
+
+              {/* Month-End Projected Bill */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Projected bill
+                </p>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {fmt(projectedMonthNetCost)}
+                  </span>
+                </div>
+                <p className="mt-2 text-[11px] text-stone-500 dark:text-stone-400">
+                  vs. {fmt(projectedMonthGrossCost)} without solar
+                </p>
+              </div>
+
+              {/* Month-to-Date Solar Savings */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Month solar savings
+                </p>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-400">
+                    +{fmt(monthSolarSavings)}
+                  </span>
+                </div>
+                <p className="mt-2 text-[11px] text-stone-500 dark:text-stone-400">
+                  Generated: {monthSolarKwh} kWh
+                </p>
+              </div>
+            </div>
+
+            {/* Net Energy Balance Visual Comparison */}
+            <div className="mt-5 border border-stone-200 bg-[#fbf9f4] p-4 dark:border-stone-700/60 dark:bg-[#211e1c]">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-semibold text-stone-800 dark:text-stone-200">
+                  Gross energy value breakdown (Projected: {fmt(projectedMonthGrossCost)})
+                </span>
+                <span className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                  <PiggyBank className="h-3.5 w-3.5" />
+                  Saving 62% via Solar & Storage
+                </span>
+              </div>
+
+              {/* Stacked comparison bar */}
+              <div className="mt-3 flex h-4 w-full overflow-hidden border border-stone-300 dark:border-stone-600">
+                <div
+                  className="bg-emerald-700 transition-all duration-500 dark:bg-emerald-600"
+                  style={{ width: "62%" }}
+                  title={`Solar offset: 62% (${fmt(projectedMonthSavings)})`}
+                />
+                <div
+                  className="bg-stone-500 transition-all duration-500 dark:bg-stone-400"
+                  style={{ width: "38%" }}
+                  title={`Net grid bill: 38% (${fmt(projectedMonthNetCost)})`}
+                />
+              </div>
+
+              {/* Bar Legend */}
+              <div className="mt-2.5 flex flex-wrap items-center justify-between text-[11px] text-stone-500 dark:text-stone-400">
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 bg-emerald-700 dark:bg-emerald-600" />
+                    Solar offset: {fmt(projectedMonthSavings)} (62%)
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 bg-stone-500 dark:bg-stone-400" />
+                    Net grid bill: {fmt(projectedMonthNetCost)} (38%)
+                  </span>
+                </div>
+                <span>
+                  Avoided emissions: <strong>{monthCo2SavedKg} kg CO₂</strong>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <aside className="border border-stone-300 bg-[#f5f1e8] p-5 dark:border-stone-700 dark:bg-[#231f1c]">
@@ -1047,6 +1283,20 @@ export default function EnergyPanel() {
                   }`}
                 >
                   {rawPercent}% used
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-stone-300 pt-2 text-sm dark:border-stone-700">
+                <span className="text-stone-500 dark:text-stone-400">Cost today</span>
+                <span className="font-semibold text-stone-800 dark:text-stone-200">
+                  {fmt(todayNetCost)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-stone-500 dark:text-stone-400">Solar savings today</span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                  +{fmt(todaySolarSavings)}
                 </span>
               </div>
             </div>

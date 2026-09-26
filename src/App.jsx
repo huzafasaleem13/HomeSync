@@ -28,13 +28,15 @@ export default function App() {
       />
 
       <main className="mx-auto max-w-7xl px-5 py-8 lg:px-10">
-        {activeSection === "overview" && <SmartHomeScene darkMode={darkMode} />}
+        <div key={activeSection} className="animate-page-enter">
+          {activeSection === "overview" && <SmartHomeScene darkMode={darkMode} />}
 
-        {activeSection === "scenes" && <SmartScenes />}
+          {activeSection === "scenes" && <SmartScenes />}
 
-        {activeSection === "security" && <SecurityPanel />}
+          {activeSection === "security" && <SecurityPanel />}
 
-        {activeSection === "energy" && <EnergyPanel />}
+          {activeSection === "energy" && <EnergyPanel />}
+        </div>
       </main>
     </div>
   );

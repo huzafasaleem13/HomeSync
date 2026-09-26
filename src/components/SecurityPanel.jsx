@@ -1,5 +1,14 @@
 import { useState, useCallback } from "react";
-import { Home, LogOut, Moon, Search, ShieldAlert } from "lucide-react";
+import {
+  Activity,
+  DoorClosed,
+  Home,
+  LogOut,
+  Moon,
+  Search,
+  Shield,
+  ShieldAlert,
+} from "lucide-react";
 
 const cameras = [
   {
@@ -24,6 +33,93 @@ const cameras = [
     color: "bg-[#aeb9c4]",
   },
 ];
+
+const initialSensors = [
+  {
+    id: "front-door-sensor",
+    name: "Front entrance",
+    type: "door",
+    room: "Entrance",
+    status: "Closed",
+    battery: "98%",
+    isAlert: false,
+  },
+  {
+    id: "patio-door-sensor",
+    name: "Patio sliding door",
+    type: "door",
+    room: "Living room",
+    status: "Closed",
+    battery: "92%",
+    isAlert: false,
+  },
+  {
+    id: "garage-door-sensor",
+    name: "Garage vehicle roll",
+    type: "door",
+    room: "Garage",
+    status: "Closed",
+    battery: "100%",
+    isAlert: false,
+  },
+  {
+    id: "living-window-sensor",
+    name: "Living room window",
+    type: "window",
+    room: "Living room",
+    status: "Closed",
+    battery: "88%",
+    isAlert: false,
+  },
+  {
+    id: "bedroom-window-sensor",
+    name: "Bedroom bay window",
+    type: "window",
+    room: "Master bedroom",
+    status: "Closed",
+    battery: "95%",
+    isAlert: false,
+  },
+  {
+    id: "kitchen-window-sensor",
+    name: "Kitchen garden window",
+    type: "window",
+    room: "Kitchen",
+    status: "Closed",
+    battery: "84%",
+    isAlert: false,
+  },
+  {
+    id: "hallway-motion-sensor",
+    name: "Hallway PIR sensor",
+    type: "motion",
+    room: "Hallway",
+    status: "Clear",
+    battery: "91%",
+    isAlert: false,
+  },
+  {
+    id: "driveway-motion-sensor",
+    name: "Driveway beam sensor",
+    type: "motion",
+    room: "Driveway",
+    status: "Detected",
+    battery: "86%",
+    isAlert: true,
+  },
+];
+
+function getSensorIcon(type) {
+  switch (type) {
+    case "door":
+      return DoorClosed;
+    case "window":
+      return Shield;
+    case "motion":
+    default:
+      return Activity;
+  }
+}
 
 const initialEvents = [
   { id: 1, time: "8:42 PM", text: "Front door locked", type: "Secure" },
@@ -81,6 +177,8 @@ export default function SecurityPanel() {
   const [securityMode, setSecurityMode] = useState("home");
   const [isFrontDoorLocked, setIsFrontDoorLocked] = useState(true);
   const [selectedCameraId, setSelectedCameraId] = useState("front-door");
+  const [sensors, setSensors] = useState(initialSensors);
+  const [sensorFilter, setSensorFilter] = useState("all");
   const [events, setEvents] = useState(initialEvents);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -144,6 +242,49 @@ export default function SecurityPanel() {
     });
   }, []);
 
+  const toggleSensor = useCallback((sensorId) => {
+    setSensors((prev) =>
+      prev.map((s) => {
+        if (s.id !== sensorId) return s;
+        const willBeAlert = !s.isAlert;
+        let newStatus;
+        if (s.type === "motion") {
+          newStatus = willBeAlert ? "Detected" : "Clear";
+        } else {
+          newStatus = willBeAlert ? "Open" : "Closed";
+        }
+
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+        });
+
+        setEvents((eventsPrev) => [
+          {
+            id: eventsPrev.length
+              ? Math.max(...eventsPrev.map((e) => e.id)) + 1
+              : 1,
+            time: timeStr,
+            text: `${s.name} ${newStatus.toLowerCase()}`,
+            type: willBeAlert ? "Activity" : "Secure",
+          },
+          ...eventsPrev,
+        ]);
+
+        return {
+          ...s,
+          status: newStatus,
+          isAlert: willBeAlert,
+        };
+      }),
+    );
+  }, []);
+
+  const filteredSensors = sensors.filter(
+    (s) => sensorFilter === "all" || s.type === sensorFilter,
+  );
+
   const filteredEvents = events.filter((event) => {
     const matchesCategory =
       activeFilter === "All" || event.type === activeFilter;
@@ -175,6 +316,7 @@ export default function SecurityPanel() {
 
       <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-5">
+          {/* Camera live preview */}
           <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -207,6 +349,7 @@ export default function SecurityPanel() {
             </div>
           </div>
 
+          {/* Camera selection buttons */}
           <div className="grid gap-3 sm:grid-cols-3">
             {cameras.map((camera) => {
               const isSelected = camera.id === selectedCameraId;
@@ -232,6 +375,89 @@ export default function SecurityPanel() {
                 </button>
               );
             })}
+          </div>
+
+          {/* Sensor status grid */}
+          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
+                  Perimeter telemetry
+                </p>
+                <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                  Sensor network status
+                </h3>
+              </div>
+
+              {/* Sensor Filter buttons */}
+              <div className="flex flex-wrap gap-1">
+                {["all", "door", "window", "motion"].map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setSensorFilter(type)}
+                    className={`border px-2.5 py-1 text-xs font-semibold capitalize transition-colors duration-200 ${
+                      sensorFilter === type
+                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                        : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                    }`}
+                  >
+                    {type === "all" ? "All sensors" : `${type}s`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid of sensors */}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {filteredSensors.map((sensor) => {
+                const SensorIcon = getSensorIcon(sensor.type);
+
+                return (
+                  <button
+                    key={sensor.id}
+                    type="button"
+                    onClick={() => toggleSensor(sensor.id)}
+                    className={`border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 ${
+                      sensor.isAlert
+                        ? "border-amber-600 bg-amber-50/60 dark:border-amber-500/60 dark:bg-amber-950/30"
+                        : "border-stone-300 bg-white/70 hover:border-stone-400 dark:border-stone-700 dark:bg-[#1c1917]/70 dark:hover:border-stone-600"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <SensorIcon
+                        className={`h-4 w-4 ${
+                          sensor.isAlert
+                            ? "text-amber-700 dark:text-amber-400"
+                            : "text-stone-500 dark:text-stone-400"
+                        }`}
+                      />
+                      <span
+                        className={`border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                          sensor.isAlert
+                            ? "border-amber-800/30 bg-amber-100/70 text-amber-800 dark:border-amber-400/30 dark:bg-amber-900/60 dark:text-amber-300"
+                            : "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400"
+                        }`}
+                      >
+                        {sensor.status}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 truncate text-xs font-semibold text-stone-900 dark:text-stone-100">
+                      {sensor.name}
+                    </p>
+                    <div className="mt-1 flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400">
+                      <span>{sensor.room}</span>
+                      <span>Bat {sensor.battery}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="mt-3 text-[11px] text-stone-500 dark:text-stone-400">
+              Click any sensor to simulate open/detected trigger.
+            </p>
           </div>
         </div>
 

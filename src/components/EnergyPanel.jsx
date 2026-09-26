@@ -1,15 +1,25 @@
 import { useState } from "react";
 import {
+  AirVent,
   AlertTriangle,
   BarChart3,
   Battery,
+  Car,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Droplets,
+  Layers,
   Leaf,
+  Lightbulb,
   Minus,
   Plus,
   Sun,
   Target,
   TrendingDown,
+  Tv,
+  UtensilsCrossed,
+  Waves,
   Zap,
 } from "lucide-react";
 
@@ -107,6 +117,107 @@ const energyEvents = [
   { time: "9:30 AM", text: "Grid import started", type: "Grid" },
 ];
 
+const initialAppliances = [
+  {
+    id: "hvac",
+    name: "Central HVAC & Heat Pump",
+    model: "Daikin Inverter VRV",
+    category: "Climate",
+    currentKw: 1.45,
+    todayKwh: 8.2,
+    percentage: 33,
+    status: "Active",
+    statusDetail: "Cooling to 21.5°C · Inverter 42%",
+    peakDraw: "2.8 kW at 2:30 PM",
+    ecoOptimized: true,
+    icon: AirVent,
+  },
+  {
+    id: "ev",
+    name: "EV Fast Charger",
+    model: "Wallbox Gen 3 (32A)",
+    category: "Mobility",
+    currentKw: 1.80,
+    todayKwh: 5.1,
+    percentage: 21,
+    status: "Active",
+    statusDetail: "Charging vehicle · 68% battery",
+    peakDraw: "7.2 kW at 1:10 AM",
+    ecoOptimized: true,
+    icon: Car,
+  },
+  {
+    id: "water_heater",
+    name: "Hybrid Water Heater",
+    model: "ProTerra Heat Pump 80G",
+    category: "Water",
+    currentKw: 0.85,
+    todayKwh: 4.6,
+    percentage: 19,
+    status: "Active",
+    statusDetail: "Heat pump mode · Tank at 54°C",
+    peakDraw: "2.1 kW at 7:45 AM",
+    ecoOptimized: true,
+    icon: Droplets,
+  },
+  {
+    id: "kitchen",
+    name: "Induction Range & Oven",
+    model: "Miele Smart Induction",
+    category: "Kitchen",
+    currentKw: 0.60,
+    todayKwh: 2.9,
+    percentage: 12,
+    status: "Standby",
+    statusDetail: "Zone 2 simmer & clock active",
+    peakDraw: "3.4 kW at 12:15 PM",
+    ecoOptimized: false,
+    icon: UtensilsCrossed,
+  },
+  {
+    id: "laundry",
+    name: "Smart Washer & Dryer",
+    model: "Bosch Serie 8 Heat Pump",
+    category: "Utility",
+    currentKw: 0.40,
+    todayKwh: 2.2,
+    percentage: 9,
+    status: "Standby",
+    statusDetail: "Cycle finished · Idle standby",
+    peakDraw: "1.9 kW at 10:20 AM",
+    ecoOptimized: true,
+    icon: Waves,
+  },
+  {
+    id: "lighting",
+    name: "Architectural LED Circuits",
+    model: "Lutron Caséta Dimmers",
+    category: "Lighting",
+    currentKw: 0.18,
+    todayKwh: 1.0,
+    percentage: 4,
+    status: "Active",
+    statusDetail: "5 zones dimmed at 65%",
+    peakDraw: "0.32 kW at 8:00 PM",
+    ecoOptimized: true,
+    icon: Lightbulb,
+  },
+  {
+    id: "entertainment",
+    name: "AV Center & Network Mesh",
+    model: "Sony OLED + UniFi PoE Gateway",
+    category: "Media",
+    currentKw: 0.12,
+    todayKwh: 0.6,
+    percentage: 2,
+    status: "Active",
+    statusDetail: "Main switch & media server on",
+    peakDraw: "0.28 kW at 9:15 PM",
+    ecoOptimized: false,
+    icon: Tv,
+  },
+];
+
 export default function EnergyPanel() {
   const [selectedZoneId, setSelectedZoneId] = useState("solar");
   const [ecoMode, setEcoMode] = useState(true);
@@ -158,6 +269,30 @@ export default function EnergyPanel() {
   const handleAdjustBudget = (delta) => {
     setMonthlyBudgetGoal((prev) => Math.max(150, Math.min(800, prev + delta)));
   };
+
+  // Appliance sub-metering state
+  const [appliances, setAppliances] = useState(initialAppliances);
+  const [applianceCategory, setApplianceCategory] = useState("All");
+  const [applianceSortBy, setApplianceSortBy] = useState("usage");
+  const [expandedApplianceId, setExpandedApplianceId] = useState(null);
+
+  const toggleApplianceEco = (id) => {
+    setAppliances((prev) =>
+      prev.map((app) => (app.id === id ? { ...app, ecoOptimized: !app.ecoOptimized } : app)),
+    );
+  };
+
+  const filteredAppliances = appliances
+    .filter((app) => applianceCategory === "All" || app.category === applianceCategory)
+    .sort((a, b) => {
+      if (applianceSortBy === "usage") return b.todayKwh - a.todayKwh;
+      if (applianceSortBy === "power") return b.currentKw - a.currentKw;
+      return a.name.localeCompare(b.name);
+    });
+
+  const totalApplianceKw = appliances.reduce((sum, a) => sum + a.currentKw, 0).toFixed(2);
+  const totalApplianceKwh = appliances.reduce((sum, a) => sum + a.todayKwh, 0).toFixed(1);
+  const ecoOptimizedCount = appliances.filter((a) => a.ecoOptimized).length;
 
   const selectedZone = energyZones.find((zone) => zone.id === selectedZoneId);
   const currentChart = chartData[timeframe];
@@ -573,6 +708,228 @@ export default function EnergyPanel() {
                   : `${projectedUsage - monthlyBudgetGoal} kWh over`}
                 )
               </p>
+            </div>
+          </div>
+
+          {/* Appliance-Level Consumption Breakdown */}
+          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+              <div className="flex items-center gap-2.5">
+                <Layers className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                    Sub-metering
+                  </p>
+                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    Appliance-level consumption
+                  </h3>
+                </div>
+              </div>
+
+              {/* Live Aggregate Draw Badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
+                  Live draw:
+                </span>
+                <span className="border border-stone-300 bg-[#fbf9f4] px-2.5 py-1 text-xs font-semibold text-stone-800 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200">
+                  {totalApplianceKw} kW active
+                </span>
+              </div>
+            </div>
+
+            {/* Filter and Sort Toolbar */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              {/* Category Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {["All", "Climate", "Mobility", "Water", "Kitchen", "Utility", "Lighting", "Media"].map(
+                  (cat) => {
+                    const count =
+                      cat === "All"
+                        ? appliances.length
+                        : appliances.filter((a) => a.category === cat).length;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setApplianceCategory(cat)}
+                        className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                          applianceCategory === cat
+                            ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                            : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                        }`}
+                      >
+                        {cat} ({count})
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+
+              {/* Sort Selector */}
+              <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.08em]">Sort:</span>
+                {[
+                  { id: "usage", label: "Usage" },
+                  { id: "power", label: "Power" },
+                  { id: "name", label: "Name" },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setApplianceSortBy(s.id)}
+                    className={`border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      applianceSortBy === s.id
+                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                        : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/50"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Appliances List */}
+            <div className="mt-4 space-y-2.5">
+              {filteredAppliances.map((appliance) => {
+                const isExpanded = expandedApplianceId === appliance.id;
+                const ApplianceIcon = appliance.icon;
+                const isActive = appliance.status === "Active";
+
+                return (
+                  <div
+                    key={appliance.id}
+                    className="border border-stone-200/90 bg-[#fcfaf5] transition-colors dark:border-stone-700/70 dark:bg-[#201d1b]"
+                  >
+                    {/* Main Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-stone-300 bg-[#f5f1e8] dark:border-stone-600 dark:bg-[#292524]">
+                          <ApplianceIcon className="h-4 w-4 text-stone-700 dark:text-stone-300" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                              {appliance.name}
+                            </h4>
+                            <span
+                              className={`flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                                isActive
+                                  ? "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400"
+                                  : "border-stone-300 bg-stone-100 text-stone-600 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400"
+                              }`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  isActive
+                                    ? "bg-emerald-600 dark:bg-emerald-400"
+                                    : "bg-stone-400 dark:bg-stone-500"
+                                }`}
+                              />
+                              {appliance.status}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
+                            {appliance.model} · {appliance.category}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Power & Energy Metrics */}
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                            {appliance.currentKw.toFixed(2)} kW
+                          </p>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">
+                            {appliance.todayKwh.toFixed(1)} kWh ({appliance.percentage}%)
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedApplianceId(isExpanded ? null : appliance.id)
+                          }
+                          aria-label={`${isExpanded ? "Collapse" : "Expand"} ${appliance.name} details`}
+                          className="flex h-7 w-7 items-center justify-center border border-stone-300 bg-stone-100 text-stone-600 transition hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700"
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar of Consumption Share */}
+                    <div className="px-3 pb-3">
+                      <div className="h-1.5 w-full bg-stone-200 dark:bg-stone-700">
+                        <div
+                          className="h-full bg-stone-600 transition-all duration-500 dark:bg-stone-400"
+                          style={{ width: `${appliance.percentage * 2.5}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Expanded Drawer Telemetry */}
+                    {isExpanded && (
+                      <div className="border-t border-stone-200 bg-[#f7f4ed]/80 px-4 py-3 dark:border-stone-700/60 dark:bg-[#1a1816]/70">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                              Current telemetry
+                            </p>
+                            <p className="mt-0.5 text-xs text-stone-800 dark:text-stone-200">
+                              {appliance.statusDetail}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                              Peak demand today
+                            </p>
+                            <p className="mt-0.5 text-xs text-stone-800 dark:text-stone-200">
+                              {appliance.peakDraw}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-start sm:justify-end">
+                            <button
+                              type="button"
+                              onClick={() => toggleApplianceEco(appliance.id)}
+                              className={`flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                                appliance.ecoOptimized
+                                  ? "border-emerald-800/30 bg-emerald-50 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-400"
+                                  : "border-stone-400 bg-white text-stone-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300"
+                              }`}
+                            >
+                              <Leaf className="h-3 w-3" />
+                              <span>
+                                {appliance.ecoOptimized ? "Eco optimized" : "Eco standard"}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Summary Footer */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 pt-3 text-xs text-stone-500 dark:text-stone-400">
+              <span>
+                {filteredAppliances.length} of {appliances.length} appliances displayed
+              </span>
+              <span>
+                Total tracked:{" "}
+                <strong className="text-stone-800 dark:text-stone-200">
+                  {totalApplianceKwh} kWh
+                </strong>{" "}
+                ({ecoOptimizedCount} of {appliances.length} eco-optimized)
+              </span>
             </div>
           </div>
 

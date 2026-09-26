@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Check, Clock, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  History,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 
 const initialScenes = [
   {
@@ -46,6 +56,30 @@ const colorOptions = [
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+const initialHistory = [
+  {
+    id: "hist-1",
+    text: "Evening at home activated",
+    time: "7:30 PM",
+    type: "Scheduled",
+    action: "activated",
+  },
+  {
+    id: "hist-2",
+    text: "Away mode deactivated",
+    time: "6:15 PM",
+    type: "Manual",
+    action: "deactivated",
+  },
+  {
+    id: "hist-3",
+    text: "Morning routine activated",
+    time: "7:00 AM",
+    type: "Scheduled",
+    action: "activated",
+  },
+];
+
 function formatScheduleString(triggerType, days, time) {
   if (triggerType === "manual") {
     return "Manual activation";
@@ -87,6 +121,8 @@ export default function SmartScenes() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingSceneId, setEditingSceneId] = useState(null);
   const [deletingSceneId, setDeletingSceneId] = useState(null);
+  const [activationHistory, setActivationHistory] = useState(initialHistory);
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(true);
 
   const [newScene, setNewScene] = useState({
     name: "",
@@ -107,9 +143,32 @@ export default function SmartScenes() {
   });
 
   const activateScene = (sceneId) => {
+    const targetScene = sceneList.find((s) => s.id === sceneId);
+    const isDeactivating = activeSceneId === sceneId;
+
     setActiveSceneId((currentSceneId) =>
       currentSceneId === sceneId ? null : sceneId,
     );
+
+    if (targetScene) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
+      const newEvent = {
+        id: `hist-${Date.now()}`,
+        text: isDeactivating
+          ? `${targetScene.name} deactivated`
+          : `${targetScene.name} activated`,
+        time: timeStr,
+        type: "Manual",
+        action: isDeactivating ? "deactivated" : "activated",
+      };
+
+      setActivationHistory((prev) => [newEvent, ...prev.slice(0, 9)]);
+    }
   };
 
   const handleCreateScene = (e) => {
@@ -719,6 +778,63 @@ export default function SmartScenes() {
             </article>
           );
         })}
+      </div>
+
+      {/* Scene activation history */}
+      <div className="mt-8 border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <History className="h-4 w-4 text-stone-500 dark:text-stone-400" />
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+              Activation history
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsHistoryExpanded((open) => !open)}
+            className="flex items-center gap-1 text-xs font-medium text-stone-500 transition-colors hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
+            aria-label={isHistoryExpanded ? "Collapse history" : "Expand history"}
+          >
+            <span>{isHistoryExpanded ? "Hide" : "Show"}</span>
+            {isHistoryExpanded ? (
+              <ChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )}
+          </button>
+        </div>
+
+        {isHistoryExpanded && (
+          <div className="mt-4 border-t border-stone-200/80 pt-4 dark:border-stone-700/80">
+            {activationHistory.length === 0 ? (
+              <p className="py-2 text-sm text-stone-500 dark:text-stone-400">
+                No recent scene activations recorded.
+              </p>
+            ) : (
+              <ol className="space-y-3.5">
+                {activationHistory.map((item) => (
+                  <li key={item.id} className="flex items-start gap-3">
+                    <span
+                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                        item.action === "activated"
+                          ? "bg-emerald-600 dark:bg-emerald-400"
+                          : "bg-stone-400 dark:bg-stone-500"
+                      }`}
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
+                        {item.text}
+                      </p>
+                      <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
+                        {item.time} · {item.type}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

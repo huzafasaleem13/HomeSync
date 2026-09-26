@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { Bell, Menu, Moon, Sun, X } from "lucide-react";
 
 const navigationItems = [
   { id: "overview", label: "3D Home" },
@@ -13,8 +13,12 @@ export default function DashboardHeader({
   onSectionChange,
   darkMode,
   onDarkModeToggle,
+  notifications = [],
+  onDismissNotification,
+  onMarkAllRead,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -33,13 +37,16 @@ export default function DashboardHeader({
     minute: "2-digit",
   });
 
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   function handleSectionChange(sectionId) {
     onSectionChange(sectionId);
     setIsMenuOpen(false);
+    setIsNotificationsOpen(false);
   }
 
   return (
-    <header className="border-b border-stone-300 bg-[#f2eee5] dark:border-stone-700 dark:bg-[#1c1917]">
+    <header className="relative border-b border-stone-300 bg-[#f2eee5] dark:border-stone-700 dark:bg-[#1c1917]">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-5 lg:px-10">
         <button
           type="button"
@@ -100,6 +107,21 @@ export default function DashboardHeader({
             )}
           </button>
 
+          {/* Notification bell */}
+          <button
+            type="button"
+            onClick={() => setIsNotificationsOpen((open) => !open)}
+            className="relative text-stone-500 transition-colors duration-200 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
+            aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
+          >
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             onClick={onDarkModeToggle}
@@ -123,6 +145,69 @@ export default function DashboardHeader({
           </div>
         </div>
       </div>
+
+      {/* Notification dropdown */}
+      {isNotificationsOpen && (
+        <div className="absolute right-5 top-full z-50 mt-1 w-80 border border-stone-300 bg-[#f7f4ed] shadow-lg lg:right-10 dark:border-stone-700 dark:bg-[#292524]">
+          <div className="flex items-center justify-between border-b border-stone-300 px-4 py-3 dark:border-stone-700">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+              Notifications
+            </p>
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={onMarkAllRead}
+                className="text-xs font-medium text-stone-500 transition-colors duration-200 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
+              >
+                Mark all read
+              </button>
+            )}
+          </div>
+
+          {notifications.length === 0 ? (
+            <p className="px-4 py-6 text-center text-sm text-stone-500 dark:text-stone-400">
+              No notifications
+            </p>
+          ) : (
+            <ol className="max-h-72 overflow-y-auto">
+              {notifications.map((notification) => (
+                <li
+                  key={notification.id}
+                  className={`flex items-start gap-3 border-b border-stone-200 px-4 py-3 last:border-0 dark:border-stone-700 ${
+                    notification.read
+                      ? "opacity-60"
+                      : ""
+                  }`}
+                >
+                  <span
+                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                      notification.read
+                        ? "bg-stone-400 dark:bg-stone-600"
+                        : "bg-emerald-600 dark:bg-emerald-500"
+                    }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
+                      {notification.text}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                      {notification.time} · {notification.type}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onDismissNotification(notification.id)}
+                    className="mt-0.5 shrink-0 text-stone-400 transition-colors duration-200 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300"
+                    aria-label={`Dismiss: ${notification.text}`}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
 
       {/* Mobile dropdown menu */}
       {isMenuOpen && (

@@ -4,6 +4,8 @@ import { useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
+  CloudSun,
+  Droplets,
   Lamp,
   Lock,
   Minus,
@@ -85,6 +87,14 @@ const outerWalls = [
   { position: [-3.95, 0.48, 0.38], size: [0.14, 0.82, 6.7] },
   { position: [3.95, 0.48, 0.38], size: [0.14, 0.82, 6.7] },
 ];
+
+const outdoorWeather = {
+  temperature: "18°C",
+  condition: "Partly cloudy",
+  humidity: "58%",
+  wind: "14 km/h",
+  uvIndex: "Moderate",
+};
 
 const initialDevices = {
   living: [
@@ -355,6 +365,40 @@ export default function SmartHomeScene({ darkMode }) {
         </div>
 
         <aside className="border border-stone-300 bg-[#f5f1e8] p-5 dark:border-stone-700 dark:bg-[#231f1c]">
+          {/* Outdoor climate widget */}
+          <div className="mb-6 border border-stone-300 bg-[#f7f4ed] p-3.5 dark:border-stone-700 dark:bg-[#292524]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+                  Outdoor climate
+                </p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {outdoorWeather.temperature}
+                  </span>
+                  <span className="text-xs text-stone-600 dark:text-stone-400">
+                    {outdoorWeather.condition}
+                  </span>
+                </div>
+              </div>
+              <CloudSun className="h-7 w-7 text-stone-600 dark:text-stone-300" />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between border-t border-stone-200/80 pt-2.5 text-[11px] text-stone-600 dark:border-stone-700/80 dark:text-stone-400">
+              <span className="flex items-center gap-1">
+                <Droplets className="h-3 w-3 text-stone-500 dark:text-stone-400" />
+                {outdoorWeather.humidity}
+              </span>
+              <span className="flex items-center gap-1">
+                <Wind className="h-3 w-3 text-stone-500 dark:text-stone-400" />
+                {outdoorWeather.wind}
+              </span>
+              <span className="font-medium text-stone-700 dark:text-stone-300">
+                UV {outdoorWeather.uvIndex}
+              </span>
+            </div>
+          </div>
+
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
             Selected room
           </p>

@@ -77,6 +77,7 @@ const outerWalls = [
 
 export default function SmartHomeScene({ darkMode }) {
   const [selectedRoomId, setSelectedRoomId] = useState("living");
+  const [hoveredRoomId, setHoveredRoomId] = useState(null);
   const [lights, setLights] = useState({
     living: true,
     kitchen: false,
@@ -140,6 +141,7 @@ export default function SmartHomeScene({ darkMode }) {
 
             {rooms.map((room) => {
               const isSelected = room.id === selectedRoomId;
+              const isHovered = room.id === hoveredRoomId;
               const lightIsOn = lights[room.id];
 
               return (
@@ -149,12 +151,22 @@ export default function SmartHomeScene({ darkMode }) {
                     event.stopPropagation();
                     setSelectedRoomId(room.id);
                   }}
+                  onPointerOver={(event) => {
+                    event.stopPropagation();
+                    setHoveredRoomId(room.id);
+                    document.body.style.cursor = "pointer";
+                  }}
+                  onPointerOut={(event) => {
+                    event.stopPropagation();
+                    setHoveredRoomId((current) => (current === room.id ? null : current));
+                    document.body.style.cursor = "auto";
+                  }}
                 >
                   <mesh
                     castShadow
                     receiveShadow
                     position={room.position}
-                    scale={isSelected ? 1.025 : 1}
+                    scale={isSelected ? 1.025 : isHovered ? 1.015 : 1}
                   >
                     <boxGeometry args={room.size} />
                     <meshStandardMaterial
@@ -187,14 +199,27 @@ export default function SmartHomeScene({ darkMode }) {
                     position={[room.position[0], 2.3, room.position[2]]}
                   />
 
-                  {isSelected && (
+                  {(isSelected || isHovered) && (
                     <Html
-                      position={[room.position[0], 0.8, room.position[2]]}
+                      position={[room.position[0], 0.85, room.position[2]]}
                       center
                       distanceFactor={10}
                     >
-                      <div className="whitespace-nowrap border border-stone-300 bg-[#f5f1e8] px-2.5 py-1.5 text-xs font-semibold text-stone-800 shadow-sm dark:border-stone-600 dark:bg-[#292524] dark:text-stone-200">
-                        {room.name}
+                      <div
+                        className={`pointer-events-none whitespace-nowrap border px-2.5 py-1.5 text-xs shadow-sm transition-all duration-150 ${
+                          isSelected
+                            ? "border-stone-500 bg-[#f5f1e8] text-stone-900 dark:border-stone-500 dark:bg-[#292524] dark:text-stone-100"
+                            : "border-stone-300 bg-[#faf8f5]/95 text-stone-700 backdrop-blur-xs dark:border-stone-600 dark:bg-[#201d1b]/95 dark:text-stone-300"
+                        }`}
+                      >
+                        <div className="font-semibold">{room.name}</div>
+                        {isHovered && (
+                          <div className="mt-1 flex items-center gap-1.5 border-t border-stone-200/80 pt-1 text-[11px] font-medium text-stone-500 dark:border-stone-700/80 dark:text-stone-400">
+                            <span>{room.temperature}</span>
+                            <span>·</span>
+                            <span>{room.devices}</span>
+                          </div>
+                        )}
                       </div>
                     </Html>
                   )}
@@ -294,9 +319,13 @@ export default function SmartHomeScene({ darkMode }) {
                 key={room.id}
                 type="button"
                 onClick={() => setSelectedRoomId(room.id)}
+                onMouseEnter={() => setHoveredRoomId(room.id)}
+                onMouseLeave={() => setHoveredRoomId((current) => (current === room.id ? null : current))}
                 className={`w-full border px-3 py-2.5 text-left text-sm transition-colors duration-200 ${
                   room.id === selectedRoomId
                     ? "border-stone-500 bg-stone-200 text-stone-900 dark:border-stone-500 dark:bg-stone-700 dark:text-stone-100"
+                    : room.id === hoveredRoomId
+                    ? "border-stone-400 bg-stone-200/50 text-stone-800 dark:border-stone-600 dark:bg-stone-700/50 dark:text-stone-200"
                     : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
                 }`}
               >

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Home, LogOut, Moon, Search, ShieldAlert } from "lucide-react";
 
 const cameras = [
   {
@@ -36,59 +36,113 @@ const initialEvents = [
   { id: 8, time: "11:05 AM", text: "Perimeter armed successfully", type: "Secure" },
 ];
 
+const securityModes = [
+  {
+    id: "disarmed",
+    name: "Disarmed",
+    badge: "System disarmed",
+    rule: "Monitoring inactive · Chime notifications only",
+    icon: LogOut,
+    statusClass:
+      "border-amber-800/25 bg-amber-50 text-amber-800 dark:border-amber-400/25 dark:bg-amber-950 dark:text-amber-400",
+  },
+  {
+    id: "home",
+    name: "Home",
+    badge: "Armed · Home",
+    rule: "Perimeter armed · Interior motion sensors disabled",
+    icon: Home,
+    statusClass:
+      "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400",
+  },
+  {
+    id: "away",
+    name: "Away",
+    badge: "Armed · Away",
+    rule: "Full perimeter & interior motion armed · Siren active",
+    icon: ShieldAlert,
+    statusClass:
+      "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400",
+  },
+  {
+    id: "night",
+    name: "Night",
+    badge: "Armed · Night",
+    rule: "Perimeter & ground floor motion armed · Upstairs quiet",
+    icon: Moon,
+    statusClass:
+      "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400",
+  },
+];
+
 const categories = ["All", "Secure", "Activity", "System"];
 
 export default function SecurityPanel() {
-  const [isHomeArmed, setIsHomeArmed] = useState(true);
+  const [securityMode, setSecurityMode] = useState("home");
   const [isFrontDoorLocked, setIsFrontDoorLocked] = useState(true);
   const [selectedCameraId, setSelectedCameraId] = useState("front-door");
   const [events, setEvents] = useState(initialEvents);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
 
+  const currentMode =
+    securityModes.find((m) => m.id === securityMode) || securityModes[1];
+  const CurrentModeIcon = currentMode.icon;
+
   const selectedCamera = cameras.find(
     (camera) => camera.id === selectedCameraId,
   );
 
-  const toggleArmSystem = () => {
-    const nextState = !isHomeArmed;
-    setIsHomeArmed(nextState);
+  const handleModeChange = useCallback(
+    (modeId) => {
+      if (modeId === securityMode) return;
+      setSecurityMode(modeId);
 
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
+      const targetMode = securityModes.find((m) => m.id === modeId);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
+      setEvents((prev) => [
+        {
+          id: prev.length ? Math.max(...prev.map((e) => e.id)) + 1 : 1,
+          time: timeStr,
+          text: `Alert mode changed to ${targetMode ? targetMode.name : modeId}`,
+          type: "Secure",
+        },
+        ...prev,
+      ]);
+    },
+    [securityMode],
+  );
+
+  const toggleDoorLock = useCallback(() => {
+    setIsFrontDoorLocked((current) => {
+      const nextState = !current;
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
+      setEvents((prev) => [
+        {
+          id: prev.length ? Math.max(...prev.map((e) => e.id)) + 1 : 1,
+          time: timeStr,
+          text: nextState
+            ? "Front door locked manually"
+            : "Front door unlocked manually",
+          type: "Secure",
+        },
+        ...prev,
+      ]);
+
+      return nextState;
     });
-
-    const newEvent = {
-      id: Date.now(),
-      time: timeStr,
-      text: nextState ? "System armed by user" : "System disarmed by user",
-      type: "Secure",
-    };
-
-    setEvents((prev) => [newEvent, ...prev]);
-  };
-
-  const toggleDoorLock = () => {
-    const nextState = !isFrontDoorLocked;
-    setIsFrontDoorLocked(nextState);
-
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-
-    const newEvent = {
-      id: Date.now(),
-      time: timeStr,
-      text: nextState ? "Front door locked manually" : "Front door unlocked manually",
-      type: "Secure",
-    };
-
-    setEvents((prev) => [newEvent, ...prev]);
-  };
+  }, []);
 
   const filteredEvents = events.filter((event) => {
     const matchesCategory =
@@ -112,13 +166,10 @@ export default function SecurityPanel() {
         </div>
 
         <div
-          className={`border px-3 py-2 text-sm font-semibold ${
-            isHomeArmed
-              ? "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400"
-              : "border-amber-800/25 bg-amber-50 text-amber-800 dark:border-amber-400/25 dark:bg-amber-950 dark:text-amber-400"
-          }`}
+          className={`flex items-center gap-2 border px-3 py-2 text-sm font-semibold ${currentMode.statusClass}`}
         >
-          {isHomeArmed ? "System armed" : "System disarmed"}
+          <CurrentModeIcon className="h-4 w-4" />
+          <span>{currentMode.badge}</span>
         </div>
       </div>
 
@@ -189,38 +240,61 @@ export default function SecurityPanel() {
             Security controls
           </p>
 
-          <div className="mt-5 space-y-3 border-y border-stone-300 py-5 dark:border-stone-700">
-            <div className="flex items-center justify-between gap-4">
-              <div>
+          <div className="mt-5 space-y-4 border-y border-stone-300 py-5 dark:border-stone-700">
+            {/* Alert Mode Selector */}
+            <div>
+              <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">
-                  Home monitoring
+                  Alert mode
                 </p>
-                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                  Motion and access alerts
-                </p>
+                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500 dark:text-stone-400">
+                  {currentMode.name}
+                </span>
               </div>
 
-              <button
-                type="button"
-                onClick={toggleArmSystem}
-                aria-pressed={isHomeArmed}
-                className={`min-w-20 border px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
-                  isHomeArmed
-                    ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
-                    : "border-stone-400 text-stone-700 hover:bg-stone-200 dark:border-stone-600 dark:text-stone-300 dark:hover:bg-stone-700"
-                }`}
-              >
-                {isHomeArmed ? "Armed" : "Disarmed"}
-              </button>
+              {/* 4 Mode Buttons */}
+              <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                {securityModes.map((mode) => {
+                  const isModeActive = securityMode === mode.id;
+                  const ModeIcon = mode.icon;
+
+                  return (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => handleModeChange(mode.id)}
+                      className={`flex items-center gap-2 border px-2.5 py-2 text-xs font-semibold transition-colors duration-200 ${
+                        isModeActive
+                          ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                          : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                      }`}
+                    >
+                      <ModeIcon className="h-3.5 w-3.5 shrink-0" />
+                      <span>{mode.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Policy Description */}
+              <div className="mt-2.5 border border-stone-300 bg-white/70 p-2.5 dark:border-stone-700 dark:bg-[#1c1917]/70">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-500 dark:text-stone-400">
+                  Active policy
+                </p>
+                <p className="mt-0.5 text-xs leading-normal text-stone-700 dark:text-stone-300">
+                  {currentMode.rule}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 pt-2">
+            {/* Front door lock */}
+            <div className="flex items-center justify-between gap-4 border-t border-stone-200/80 pt-3 dark:border-stone-700/80">
               <div>
                 <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">
                   Front door
                 </p>
-                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                  Main entrance lock
+                <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
+                  Main entrance deadbolt
                 </p>
               </div>
 

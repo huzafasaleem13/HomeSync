@@ -1,5 +1,17 @@
 import { useState } from "react";
-import { BarChart3, Battery, Leaf, Sun, TrendingDown, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  Battery,
+  CheckCircle2,
+  Leaf,
+  Minus,
+  Plus,
+  Sun,
+  Target,
+  TrendingDown,
+  Zap,
+} from "lucide-react";
 
 const energyZones = [
   {
@@ -99,6 +111,53 @@ export default function EnergyPanel() {
   const [selectedZoneId, setSelectedZoneId] = useState("solar");
   const [ecoMode, setEcoMode] = useState(true);
   const [timeframe, setTimeframe] = useState("24h");
+  const [monthlyBudgetGoal, setMonthlyBudgetGoal] = useState(350);
+
+  // Budget calculations
+  const currentMonthUsage = 218.4;
+  const cycleDays = 30;
+  const daysElapsed = 19;
+  const daysRemaining = cycleDays - daysElapsed;
+  const percentUsed = Math.min(100, Math.round((currentMonthUsage / monthlyBudgetGoal) * 100));
+  const rawPercent = Math.round((currentMonthUsage / monthlyBudgetGoal) * 100);
+  const remainingKwh = Math.max(0, monthlyBudgetGoal - currentMonthUsage);
+  const projectedUsage = Math.round((currentMonthUsage / daysElapsed) * cycleDays);
+  const dailyAllowance = remainingKwh > 0 ? (remainingKwh / daysRemaining).toFixed(1) : "0.0";
+  const todayUsage = 5.4;
+  const todayAllowanceRatio =
+    remainingKwh > 0 ? Math.min(100, Math.round((todayUsage / (remainingKwh / daysRemaining)) * 100)) : 100;
+
+  // Threshold status (green <75%, amber 75-90%, red >90%)
+  const isBudgetWarning = percentUsed >= 75 && percentUsed < 90;
+  const isBudgetExceeded = percentUsed >= 90;
+
+  const budgetStatusBadge = isBudgetExceeded
+    ? {
+        label: "Budget alert",
+        className:
+          "border-rose-800/30 bg-rose-50 text-rose-800 dark:border-rose-400/30 dark:bg-rose-950 dark:text-rose-400",
+        barClass: "bg-rose-600 dark:bg-rose-500",
+        Icon: AlertTriangle,
+      }
+    : isBudgetWarning
+      ? {
+          label: "Approaching target",
+          className:
+            "border-amber-800/30 bg-amber-50 text-amber-800 dark:border-amber-400/30 dark:bg-amber-950 dark:text-amber-400",
+          barClass: "bg-amber-600 dark:bg-amber-500",
+          Icon: AlertTriangle,
+        }
+      : {
+          label: "On track",
+          className:
+            "border-emerald-800/30 bg-emerald-50 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-400",
+          barClass: "bg-emerald-600 dark:bg-emerald-500",
+          Icon: CheckCircle2,
+        };
+
+  const handleAdjustBudget = (delta) => {
+    setMonthlyBudgetGoal((prev) => Math.max(150, Math.min(800, prev + delta)));
+  };
 
   const selectedZone = energyZones.find((zone) => zone.id === selectedZoneId);
   const currentChart = chartData[timeframe];
@@ -319,6 +378,204 @@ export default function EnergyPanel() {
             </div>
           </div>
 
+          {/* Energy Goals & Budgeting */}
+          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+              <div className="flex items-center gap-2.5">
+                <Target className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                    Energy goals & budget
+                  </p>
+                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    Monthly consumption target
+                  </h3>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div
+                className={`flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.08em] ${budgetStatusBadge.className}`}
+              >
+                <budgetStatusBadge.Icon className="h-3.5 w-3.5" />
+                <span>
+                  {budgetStatusBadge.label} · {rawPercent}%
+                </span>
+              </div>
+            </div>
+
+            {/* Metrics grid */}
+            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {/* Target Limit with +/- Adjuster */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Monthly target
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {monthlyBudgetGoal}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
+                </div>
+                {/* Adjuster buttons */}
+                <div className="mt-2.5 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleAdjustBudget(-25)}
+                    disabled={monthlyBudgetGoal <= 150}
+                    aria-label="Decrease target budget by 25 kWh"
+                    className="flex h-6 flex-1 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-200 disabled:opacity-40 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAdjustBudget(25)}
+                    disabled={monthlyBudgetGoal >= 800}
+                    aria-label="Increase target budget by 25 kWh"
+                    className="flex h-6 flex-1 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-200 disabled:opacity-40 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Month to Date Usage */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Month to date
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {currentMonthUsage}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
+                </div>
+                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  Day {daysElapsed} of {cycleDays} ({daysRemaining}d left)
+                </p>
+              </div>
+
+              {/* Remaining Allowance */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Remaining
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span
+                    className={`text-xl font-semibold tracking-tight ${
+                      remainingKwh === 0
+                        ? "text-rose-600 dark:text-rose-400"
+                        : "text-stone-900 dark:text-stone-100"
+                    }`}
+                  >
+                    {remainingKwh.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
+                </div>
+                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  {Math.max(0, 100 - rawPercent)}% allowance left
+                </p>
+              </div>
+
+              {/* Daily Target Allowance */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Daily allowance
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {dailyAllowance}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh/d</span>
+                </div>
+                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  Today: {todayUsage} kWh ({todayAllowanceRatio}%)
+                </p>
+              </div>
+            </div>
+
+            {/* Visual Progress Bar Section */}
+            <div className="mt-5">
+              <div className="flex items-center justify-between text-xs font-medium text-stone-600 dark:text-stone-400">
+                <span>
+                  Usage progress: {currentMonthUsage} / {monthlyBudgetGoal} kWh
+                </span>
+                <span className="font-semibold text-stone-900 dark:text-stone-100">
+                  {rawPercent}%
+                </span>
+              </div>
+
+              {/* Main Progress Bar */}
+              <div className="relative mt-2 h-3.5 w-full bg-stone-200 dark:bg-stone-700">
+                <div
+                  className={`h-full transition-all duration-500 ${budgetStatusBadge.barClass}`}
+                  style={{ width: `${percentUsed}%` }}
+                />
+                {/* Milestone tick marks at 25%, 50%, 75% */}
+                <div className="pointer-events-none absolute inset-0">
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
+                    style={{ left: "25%" }}
+                  />
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
+                    style={{ left: "50%" }}
+                  />
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
+                    style={{ left: "75%" }}
+                  />
+                </div>
+              </div>
+
+              {/* Scale Milestones */}
+              <div className="mt-1.5 flex justify-between text-[10px] text-stone-500 dark:text-stone-400">
+                <span>0 kWh</span>
+                <span>25%</span>
+                <span>50%</span>
+                <span>75%</span>
+                <span>100% ({monthlyBudgetGoal} kWh)</span>
+              </div>
+            </div>
+
+            {/* Target Presets & Forecast */}
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/80 pt-4 dark:border-stone-700/80">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="mr-1 text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Target presets:
+                </span>
+                {[250, 300, 350, 400, 500].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setMonthlyBudgetGoal(preset)}
+                    className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                      monthlyBudgetGoal === preset
+                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                        : "border-stone-300 bg-white text-stone-600 hover:bg-stone-200/70 dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-400 dark:hover:bg-stone-700"
+                    }`}
+                  >
+                    {preset} kWh
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                Forecast: Projected ~
+                <strong className="text-stone-800 dark:text-stone-200">
+                  {projectedUsage} kWh
+                </strong>{" "}
+                by month-end (
+                {projectedUsage <= monthlyBudgetGoal
+                  ? `${monthlyBudgetGoal - projectedUsage} kWh under`
+                  : `${projectedUsage - monthlyBudgetGoal} kWh over`}
+                )
+              </p>
+            </div>
+          </div>
+
           {/* Consumption by room */}
           <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
@@ -419,6 +676,21 @@ export default function EnergyPanel() {
                   vs. yesterday
                 </span>
                 <span className="font-semibold text-emerald-700 dark:text-emerald-400">−12%</span>
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-stone-500 dark:text-stone-400">Monthly budget</span>
+                <span
+                  className={`font-semibold ${
+                    isBudgetExceeded
+                      ? "text-rose-600 dark:text-rose-400"
+                      : isBudgetWarning
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-emerald-700 dark:text-emerald-400"
+                  }`}
+                >
+                  {rawPercent}% used
+                </span>
               </div>
             </div>
           </div>

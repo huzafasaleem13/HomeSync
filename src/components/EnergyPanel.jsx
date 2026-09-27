@@ -362,7 +362,7 @@ export default function EnergyPanel() {
       </div>
 
       <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
+        <div className="flex flex-col gap-5">
           {/* Main zone status card */}
           <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -437,7 +437,7 @@ export default function EnergyPanel() {
           </div>
 
           {/* Energy Usage & Generation Visual Chart */}
-          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+          <div className="flex flex-1 flex-col justify-between border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-stone-500 dark:text-stone-400" />
@@ -552,7 +552,7 @@ export default function EnergyPanel() {
         </div>
 
         {/* Sidebar Column: Controls & Financials */}
-        <aside className="space-y-5">
+        <aside className="flex flex-col gap-5">
           {/* Card 1: Energy Controls & Today's Summary */}
           <div className="border border-stone-300 bg-[#f5f1e8] p-5 dark:border-stone-700 dark:bg-[#231f1c]">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
@@ -662,12 +662,12 @@ export default function EnergyPanel() {
           </div>
 
           {/* Card 2: Consumption by room */}
-          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+          <div className="flex flex-1 flex-col justify-between border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
               Consumption by room
             </p>
 
-            <div className="mt-4 space-y-3.5">
+            <div className="mt-4 flex flex-1 flex-col justify-between space-y-3">
               {roomConsumption.map((room) => (
                 <div key={room.id}>
                   <div className="flex items-center justify-between text-xs">
@@ -890,7 +890,7 @@ export default function EnergyPanel() {
       {/* Secondary Grid: Appliance Breakdown & Room/Event Activity */}
       <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         {/* Appliance-Level Consumption Breakdown */}
-        <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+        <div className="flex flex-col justify-between border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
               <div className="flex items-center gap-2.5">
@@ -1112,7 +1112,7 @@ export default function EnergyPanel() {
           </div>
 
         {/* Sidebar Column: Financial Analytics & Events */}
-        <aside className="space-y-5">
+        <aside className="flex flex-col gap-5">
           {/* Card 3: Cost Estimation & Solar Savings Card */}
           <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             {/* Header */}
@@ -1290,12 +1290,12 @@ export default function EnergyPanel() {
           </div>
 
           {/* Card 4: Recent events */}
-          <div className="border border-stone-300 bg-[#f5f1e8] p-5 dark:border-stone-700 dark:bg-[#231f1c]">
+          <div className="flex flex-1 flex-col justify-between border border-stone-300 bg-[#f5f1e8] p-5 dark:border-stone-700 dark:bg-[#231f1c]">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
               Recent events
             </p>
 
-            <ol className="mt-4 space-y-3.5">
+            <ol className="mt-4 flex flex-1 flex-col justify-between space-y-3.5">
               {energyEvents.map((event) => (
                 <li key={`${event.time}-${event.text}`} className="flex gap-2.5">
                   <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-stone-500 dark:bg-stone-400" />

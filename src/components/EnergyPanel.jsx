@@ -114,9 +114,42 @@ const roomConsumption = [
 ];
 
 const energyEvents = [
-  { time: "3:42 PM", text: "Solar output peaked at 4.1 kW", type: "Generation" },
-  { time: "1:15 PM", text: "Battery fully charged", type: "Storage" },
-  { time: "9:30 AM", text: "Grid import started", type: "Grid" },
+  {
+    time: "3:42 PM",
+    text: "Solar output peaked at 4.1 kW",
+    type: "Generation",
+    dotColor: "bg-[#d8c5a8]",
+  },
+  {
+    time: "1:15 PM",
+    text: "Battery fully charged (100%)",
+    type: "Storage",
+    dotColor: "bg-emerald-600 dark:bg-emerald-400",
+  },
+  {
+    time: "11:30 AM",
+    text: "Heat pump shifted to eco mode",
+    type: "Optimization",
+    dotColor: "bg-stone-500 dark:bg-stone-400",
+  },
+  {
+    time: "10:05 AM",
+    text: "EV charging completed (14.2 kWh)",
+    type: "Consumption",
+    dotColor: "bg-stone-500 dark:bg-stone-400",
+  },
+  {
+    time: "9:30 AM",
+    text: "Grid import started",
+    type: "Grid",
+    dotColor: "bg-amber-600 dark:bg-amber-400",
+  },
+  {
+    time: "6:15 AM",
+    text: "Solar inverter morning sync",
+    type: "System",
+    dotColor: "bg-stone-400 dark:bg-stone-500",
+  },
 ];
 
 const initialAppliances = [
@@ -438,93 +471,95 @@ export default function EnergyPanel() {
 
           {/* Energy Usage & Generation Visual Chart */}
           <div className="flex flex-1 flex-col justify-between border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-stone-500 dark:text-stone-400" />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
-                    Energy analytics
-                  </p>
-                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                    {currentChart.label}
-                  </h3>
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-stone-500 dark:text-stone-400" />
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                      Energy analytics
+                    </p>
+                    <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                      {currentChart.label}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Timeframe selector tabs */}
+                <div className="flex gap-1">
+                  {["24h", "7d", "30d"].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTimeframe(t)}
+                      className={`border px-3 py-1 text-xs font-semibold uppercase transition-colors duration-200 ${
+                        timeframe === t
+                          ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                          : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Timeframe selector tabs */}
-              <div className="flex gap-1">
-                {["24h", "7d", "30d"].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTimeframe(t)}
-                    className={`border px-3 py-1 text-xs font-semibold uppercase transition-colors duration-200 ${
-                      timeframe === t
-                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
-                        : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
+              {/* Chart Legend */}
+              <div className="mt-4 flex items-center justify-end gap-5 text-xs text-stone-600 dark:text-stone-400">
+                <span className="flex items-center gap-2">
+                  <span className="h-3 w-3 border border-stone-400 bg-[#d8c5a8] dark:border-stone-500 dark:bg-[#c5b9aa]" />
+                  Solar generated
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="h-3 w-3 border border-stone-600 bg-stone-700 dark:border-stone-400 dark:bg-stone-300" />
+                  Home consumption
+                </span>
               </div>
-            </div>
 
-            {/* Chart Legend */}
-            <div className="mt-4 flex items-center justify-end gap-5 text-xs text-stone-600 dark:text-stone-400">
-              <span className="flex items-center gap-2">
-                <span className="h-3 w-3 border border-stone-400 bg-[#d8c5a8] dark:border-stone-500 dark:bg-[#c5b9aa]" />
-                Solar generated
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="h-3 w-3 border border-stone-600 bg-stone-700 dark:border-stone-400 dark:bg-stone-300" />
-                Home consumption
-              </span>
-            </div>
+              {/* Bar Chart Canvas */}
+              <div className="mt-6 flex h-48 items-end gap-2 border-b border-stone-300 px-2 pb-2 dark:border-stone-700 sm:gap-6">
+                {currentChart.points.map((point) => {
+                  const solarH = Math.max(4, Math.round((point.solar / maxVal) * 100));
+                  const consH = Math.max(4, Math.round((point.consumption / maxVal) * 100));
 
-            {/* Bar Chart Canvas */}
-            <div className="mt-6 flex h-48 items-end gap-2 border-b border-stone-300 px-2 pb-2 dark:border-stone-700 sm:gap-6">
-              {currentChart.points.map((point) => {
-                const solarH = Math.max(4, Math.round((point.solar / maxVal) * 100));
-                const consH = Math.max(4, Math.round((point.consumption / maxVal) * 100));
+                  return (
+                    <div key={point.label} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+                      {/* Tooltip on hover */}
+                      <div className="pointer-events-none absolute -top-8 z-10 hidden whitespace-nowrap border border-stone-400 bg-[#f5f1e8] px-2 py-1 text-[10px] font-semibold text-stone-800 shadow-sm group-hover:block dark:border-stone-600 dark:bg-[#201d1b] dark:text-stone-200">
+                        Solar: {point.solar} {currentChart.unit} · Use: {point.consumption} {currentChart.unit}
+                      </div>
 
-                return (
-                  <div key={point.label} className="group relative flex h-full flex-1 flex-col items-center justify-end">
-                    {/* Tooltip on hover */}
-                    <div className="pointer-events-none absolute -top-8 z-10 hidden whitespace-nowrap border border-stone-400 bg-[#f5f1e8] px-2 py-1 text-[10px] font-semibold text-stone-800 shadow-sm group-hover:block dark:border-stone-600 dark:bg-[#201d1b] dark:text-stone-200">
-                      Solar: {point.solar} {currentChart.unit} · Use: {point.consumption} {currentChart.unit}
+                      {/* Bars column with fixed height */}
+                      <div className="flex h-36 w-full items-end justify-center gap-1.5 sm:gap-2.5">
+                        {/* Solar bar */}
+                        <div
+                          className="w-3 sm:w-4 bg-[#d8c5a8] transition-all duration-300 dark:bg-[#d8c5a8]"
+                          style={{
+                            height: `${point.solar > 0 ? solarH : 2}%`,
+                            minHeight: point.solar > 0 ? "4px" : "2px",
+                            opacity: point.solar > 0 ? 1 : 0.35,
+                          }}
+                          title={`Solar: ${point.solar} ${currentChart.unit}`}
+                        />
+                        {/* Consumption bar */}
+                        <div
+                          className="w-3 sm:w-4 bg-stone-700 transition-all duration-300 dark:bg-stone-300"
+                          style={{
+                            height: `${point.consumption > 0 ? consH : 2}%`,
+                            minHeight: point.consumption > 0 ? "4px" : "2px",
+                          }}
+                          title={`Consumption: ${point.consumption} ${currentChart.unit}`}
+                        />
+                      </div>
+
+                      {/* X-axis label */}
+                      <span className="mt-2 text-[11px] font-medium text-stone-500 dark:text-stone-400">
+                        {point.label}
+                      </span>
                     </div>
-
-                    {/* Bars column with fixed height */}
-                    <div className="flex h-36 w-full items-end justify-center gap-1.5 sm:gap-2.5">
-                      {/* Solar bar */}
-                      <div
-                        className="w-3 sm:w-4 bg-[#d8c5a8] transition-all duration-300 dark:bg-[#d8c5a8]"
-                        style={{
-                          height: `${point.solar > 0 ? solarH : 2}%`,
-                          minHeight: point.solar > 0 ? "4px" : "2px",
-                          opacity: point.solar > 0 ? 1 : 0.35,
-                        }}
-                        title={`Solar: ${point.solar} ${currentChart.unit}`}
-                      />
-                      {/* Consumption bar */}
-                      <div
-                        className="w-3 sm:w-4 bg-stone-700 transition-all duration-300 dark:bg-stone-300"
-                        style={{
-                          height: `${point.consumption > 0 ? consH : 2}%`,
-                          minHeight: point.consumption > 0 ? "4px" : "2px",
-                        }}
-                        title={`Consumption: ${point.consumption} ${currentChart.unit}`}
-                      />
-                    </div>
-
-                    {/* X-axis label */}
-                    <span className="mt-2 text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                      {point.label}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             {/* Timeframe stats summary footer */}
@@ -663,27 +698,39 @@ export default function EnergyPanel() {
 
           {/* Card 2: Consumption by room */}
           <div className="flex flex-1 flex-col justify-between border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
-              Consumption by room
-            </p>
+            <div>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                  Consumption by room
+                </p>
+                <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">
+                  5 active zones
+                </span>
+              </div>
 
-            <div className="mt-4 flex flex-1 flex-col justify-between space-y-3">
-              {roomConsumption.map((room) => (
-                <div key={room.id}>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-stone-800 dark:text-stone-200">
-                      {room.name}
-                    </span>
-                    <span className="text-stone-500 dark:text-stone-400">{room.current}</span>
+              <div className="mt-4 space-y-3.5">
+                {roomConsumption.map((room) => (
+                  <div key={room.id}>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium text-stone-800 dark:text-stone-200">
+                        {room.name}
+                      </span>
+                      <span className="text-stone-500 dark:text-stone-400">{room.current}</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 w-full bg-stone-200 dark:bg-stone-700">
+                      <div
+                        className="h-full bg-stone-600 transition-all duration-500 dark:bg-stone-400"
+                        style={{ width: `${room.percentage}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="mt-1.5 h-1.5 w-full bg-stone-200 dark:bg-stone-700">
-                    <div
-                      className="h-full bg-stone-600 transition-all duration-500 dark:bg-stone-400"
-                      style={{ width: `${room.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between border-t border-stone-200/80 pt-3 text-[11px] text-stone-500 dark:border-stone-700/80 dark:text-stone-400">
+              <span>Peak: Kitchen (1.2 kW)</span>
+              <span>Total: 2.6 kW</span>
             </div>
           </div>
         </aside>
@@ -891,6 +938,7 @@ export default function EnergyPanel() {
       <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         {/* Appliance-Level Consumption Breakdown */}
         <div className="flex flex-col justify-between border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+          <div>
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
               <div className="flex items-center gap-2.5">
@@ -1095,8 +1143,9 @@ export default function EnergyPanel() {
                 );
               })}
             </div>
+          </div>
 
-            {/* Summary Footer */}
+          {/* Summary Footer */}
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 pt-3 text-xs text-stone-500 dark:text-stone-400">
               <span>
                 {filteredAppliances.length} of {appliances.length} appliances displayed
@@ -1291,25 +1340,41 @@ export default function EnergyPanel() {
 
           {/* Card 4: Recent events */}
           <div className="flex flex-1 flex-col justify-between border border-stone-300 bg-[#f5f1e8] p-5 dark:border-stone-700 dark:bg-[#231f1c]">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
-              Recent events
-            </p>
+            <div>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                  Recent events
+                </p>
+                <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">
+                  Live telemetry
+                </span>
+              </div>
 
-            <ol className="mt-4 flex flex-1 flex-col justify-between space-y-3.5">
-              {energyEvents.map((event) => (
-                <li key={`${event.time}-${event.text}`} className="flex gap-2.5">
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-stone-500 dark:bg-stone-400" />
-                  <div>
-                    <p className="text-xs font-medium text-stone-800 dark:text-stone-200">
-                      {event.text}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400">
-                      {event.time} · {event.type}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+              <ol className="mt-3.5 space-y-2.5">
+                {energyEvents.map((event) => (
+                  <li key={`${event.time}-${event.text}`} className="flex items-start gap-2.5">
+                    <span
+                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                        event.dotColor || "bg-stone-500 dark:bg-stone-400"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-stone-800 dark:text-stone-200">
+                        {event.text}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400">
+                        {event.time} · {event.type}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between border-t border-stone-200/80 pt-2.5 text-[11px] text-stone-500 dark:border-stone-700/80 dark:text-stone-400">
+              <span>Telemetry logging active</span>
+              <span>{energyEvents.length} events logged</span>
+            </div>
           </div>
         </aside>
       </div>

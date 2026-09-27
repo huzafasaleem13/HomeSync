@@ -15,10 +15,25 @@ const initialNotifications = [
 ];
 
 export default function App() {
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab && ["overview", "scenes", "security", "energy", "settings"].includes(tab)) {
+        return tab;
+      }
+    }
+    return "overview";
+  });
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem("darkMode");
-    return saved ? JSON.parse(saved) : false;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("dark") === "true") return true;
+      if (params.get("dark") === "false") return false;
+      const saved = localStorage.getItem("darkMode");
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
   });
   const [notifications, setNotifications] = useState(initialNotifications);
 

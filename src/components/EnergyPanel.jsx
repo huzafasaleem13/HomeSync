@@ -361,7 +361,7 @@ export default function EnergyPanel() {
         </div>
       </div>
 
-      <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] items-start">
+      <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-5">
           {/* Main zone status card */}
           <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
@@ -549,430 +549,9 @@ export default function EnergyPanel() {
               </div>
             </div>
           </div>
-
-          {/* Energy Goals & Budgeting */}
-          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
-              <div className="flex items-center gap-2.5">
-                <Target className="h-4 w-4 text-stone-600 dark:text-stone-300" />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
-                    Energy goals & budget
-                  </p>
-                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                    Monthly consumption target
-                  </h3>
-                </div>
-              </div>
-
-              {/* Status Badge */}
-              <div
-                className={`flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.08em] ${budgetStatusBadge.className}`}
-              >
-                <budgetStatusBadge.Icon className="h-3.5 w-3.5" />
-                <span>
-                  {budgetStatusBadge.label} · {rawPercent}%
-                </span>
-              </div>
-            </div>
-
-            {/* Metrics grid */}
-            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {/* Target Limit with +/- Adjuster */}
-              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
-                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
-                  Monthly target
-                </p>
-                <div className="mt-1 flex items-baseline justify-between gap-1">
-                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                    {monthlyBudgetGoal}
-                  </span>
-                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
-                </div>
-                {/* Adjuster buttons */}
-                <div className="mt-2.5 flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustBudget(-25)}
-                    disabled={monthlyBudgetGoal <= 150}
-                    aria-label="Decrease target budget by 25 kWh"
-                    className="flex h-6 flex-1 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-200 disabled:opacity-40 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
-                  >
-                    <Minus className="h-3 w-3" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustBudget(25)}
-                    disabled={monthlyBudgetGoal >= 800}
-                    aria-label="Increase target budget by 25 kWh"
-                    className="flex h-6 flex-1 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-200 disabled:opacity-40 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Month to Date Usage */}
-              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
-                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
-                  Month to date
-                </p>
-                <div className="mt-1 flex items-baseline justify-between gap-1">
-                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                    {currentMonthUsage}
-                  </span>
-                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
-                </div>
-                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
-                  Day {daysElapsed} of {cycleDays} ({daysRemaining}d left)
-                </p>
-              </div>
-
-              {/* Remaining Allowance */}
-              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
-                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
-                  Remaining
-                </p>
-                <div className="mt-1 flex items-baseline justify-between gap-1">
-                  <span
-                    className={`text-xl font-semibold tracking-tight ${
-                      remainingKwh === 0
-                        ? "text-rose-600 dark:text-rose-400"
-                        : "text-stone-900 dark:text-stone-100"
-                    }`}
-                  >
-                    {remainingKwh.toFixed(1)}
-                  </span>
-                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
-                </div>
-                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
-                  {Math.max(0, 100 - rawPercent)}% allowance left
-                </p>
-              </div>
-
-              {/* Daily Target Allowance */}
-              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
-                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
-                  Daily allowance
-                </p>
-                <div className="mt-1 flex items-baseline justify-between gap-1">
-                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                    {dailyAllowance}
-                  </span>
-                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh/d</span>
-                </div>
-                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
-                  Today: {todayUsage} kWh ({todayAllowanceRatio}%)
-                </p>
-              </div>
-            </div>
-
-            {/* Visual Progress Bar Section */}
-            <div className="mt-5">
-              <div className="flex items-center justify-between text-xs font-medium text-stone-600 dark:text-stone-400">
-                <span>
-                  Usage progress: {currentMonthUsage} / {monthlyBudgetGoal} kWh
-                </span>
-                <span className="font-semibold text-stone-900 dark:text-stone-100">
-                  {rawPercent}%
-                </span>
-              </div>
-
-              {/* Main Progress Bar */}
-              <div className="relative mt-2 h-3.5 w-full bg-stone-200 dark:bg-stone-700">
-                <div
-                  className={`h-full transition-all duration-500 ${budgetStatusBadge.barClass}`}
-                  style={{ width: `${percentUsed}%` }}
-                />
-                {/* Milestone tick marks at 25%, 50%, 75% */}
-                <div className="pointer-events-none absolute inset-0">
-                  <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
-                    style={{ left: "25%" }}
-                  />
-                  <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
-                    style={{ left: "50%" }}
-                  />
-                  <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
-                    style={{ left: "75%" }}
-                  />
-                </div>
-              </div>
-
-              {/* Scale Milestones */}
-              <div className="mt-1.5 flex justify-between text-[10px] text-stone-500 dark:text-stone-400">
-                <span>0 kWh</span>
-                <span>25%</span>
-                <span>50%</span>
-                <span>75%</span>
-                <span>100% ({monthlyBudgetGoal} kWh)</span>
-              </div>
-            </div>
-
-            {/* Target Presets & Forecast */}
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/80 pt-4 dark:border-stone-700/80">
-              <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="mr-1 text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
-                  Target presets:
-                </span>
-                {[250, 300, 350, 400, 500].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setMonthlyBudgetGoal(preset)}
-                    className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
-                      monthlyBudgetGoal === preset
-                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
-                        : "border-stone-300 bg-white text-stone-600 hover:bg-stone-200/70 dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-400 dark:hover:bg-stone-700"
-                    }`}
-                  >
-                    {preset} kWh
-                  </button>
-                ))}
-              </div>
-
-              <p className="text-xs text-stone-500 dark:text-stone-400">
-                Forecast: Projected ~
-                <strong className="text-stone-800 dark:text-stone-200">
-                  {projectedUsage} kWh
-                </strong>{" "}
-                by month-end (
-                {projectedUsage <= monthlyBudgetGoal
-                  ? `${monthlyBudgetGoal - projectedUsage} kWh under`
-                  : `${projectedUsage - monthlyBudgetGoal} kWh over`}
-                )
-              </p>
-            </div>
-          </div>
-
-          {/* Appliance-Level Consumption Breakdown */}
-          <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
-            {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
-              <div className="flex items-center gap-2.5">
-                <Layers className="h-4 w-4 text-stone-600 dark:text-stone-300" />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
-                    Sub-metering
-                  </p>
-                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                    Appliance-level consumption
-                  </h3>
-                </div>
-              </div>
-
-              {/* Live Aggregate Draw Badge */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                  Live draw:
-                </span>
-                <span className="border border-stone-300 bg-[#fbf9f4] px-2.5 py-1 text-xs font-semibold text-stone-800 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200">
-                  {totalApplianceKw} kW active
-                </span>
-              </div>
-            </div>
-
-            {/* Filter and Sort Toolbar */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              {/* Category Filter Pills */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {["All", "Climate", "Mobility", "Water", "Kitchen", "Utility", "Lighting", "Media"].map(
-                  (cat) => {
-                    const count =
-                      cat === "All"
-                        ? appliances.length
-                        : appliances.filter((a) => a.category === cat).length;
-                    return (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setApplianceCategory(cat)}
-                        className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
-                          applianceCategory === cat
-                            ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
-                            : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
-                        }`}
-                      >
-                        {cat} ({count})
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-
-              {/* Sort Selector */}
-              <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
-                <span className="text-[11px] font-medium uppercase tracking-[0.08em]">Sort:</span>
-                {[
-                  { id: "usage", label: "Usage" },
-                  { id: "power", label: "Power" },
-                  { id: "name", label: "Name" },
-                ].map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setApplianceSortBy(s.id)}
-                    className={`border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-                      applianceSortBy === s.id
-                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
-                        : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/50"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Appliances List */}
-            <div className="mt-4 space-y-2.5">
-              {filteredAppliances.map((appliance) => {
-                const isExpanded = expandedApplianceId === appliance.id;
-                const ApplianceIcon = appliance.icon;
-                const isActive = appliance.status === "Active";
-
-                return (
-                  <div
-                    key={appliance.id}
-                    className="border border-stone-200/90 bg-[#fcfaf5] transition-colors dark:border-stone-700/70 dark:bg-[#201d1b]"
-                  >
-                    {/* Main Row */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-stone-300 bg-[#f5f1e8] dark:border-stone-600 dark:bg-[#292524]">
-                          <ApplianceIcon className="h-4 w-4 text-stone-700 dark:text-stone-300" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
-                              {appliance.name}
-                            </h4>
-                            <span
-                              className={`flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-                                isActive
-                                  ? "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400"
-                                  : "border-stone-300 bg-stone-100 text-stone-600 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400"
-                              }`}
-                            >
-                              <span
-                                className={`h-1.5 w-1.5 rounded-full ${
-                                  isActive
-                                    ? "bg-emerald-600 dark:bg-emerald-400"
-                                    : "bg-stone-400 dark:bg-stone-500"
-                                }`}
-                              />
-                              {appliance.status}
-                            </span>
-                          </div>
-                          <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
-                            {appliance.model} · {appliance.category}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Power & Energy Metrics */}
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
-                            {appliance.currentKw.toFixed(2)} kW
-                          </p>
-                          <p className="text-xs text-stone-500 dark:text-stone-400">
-                            {appliance.todayKwh.toFixed(1)} kWh ({appliance.percentage}%)
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setExpandedApplianceId(isExpanded ? null : appliance.id)
-                          }
-                          aria-label={`${isExpanded ? "Collapse" : "Expand"} ${appliance.name} details`}
-                          className="flex h-7 w-7 items-center justify-center border border-stone-300 bg-stone-100 text-stone-600 transition hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700"
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar of Consumption Share */}
-                    <div className="px-3 pb-3">
-                      <div className="h-1.5 w-full bg-stone-200 dark:bg-stone-700">
-                        <div
-                          className="h-full bg-stone-600 transition-all duration-500 dark:bg-stone-400"
-                          style={{ width: `${appliance.percentage * 2.5}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Expanded Drawer Telemetry */}
-                    {isExpanded && (
-                      <div className="border-t border-stone-200 bg-[#f7f4ed]/80 px-4 py-3 dark:border-stone-700/60 dark:bg-[#1a1816]/70">
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                          <div>
-                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
-                              Current telemetry
-                            </p>
-                            <p className="mt-0.5 text-xs text-stone-800 dark:text-stone-200">
-                              {appliance.statusDetail}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
-                              Peak demand today
-                            </p>
-                            <p className="mt-0.5 text-xs text-stone-800 dark:text-stone-200">
-                              {appliance.peakDraw}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-start sm:justify-end">
-                            <button
-                              type="button"
-                              onClick={() => toggleApplianceEco(appliance.id)}
-                              className={`flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold transition-colors ${
-                                appliance.ecoOptimized
-                                  ? "border-emerald-800/30 bg-emerald-50 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-400"
-                                  : "border-stone-400 bg-white text-stone-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300"
-                              }`}
-                            >
-                              <Leaf className="h-3 w-3" />
-                              <span>
-                                {appliance.ecoOptimized ? "Eco optimized" : "Eco standard"}
-                              </span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Summary Footer */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 pt-3 text-xs text-stone-500 dark:text-stone-400">
-              <span>
-                {filteredAppliances.length} of {appliances.length} appliances displayed
-              </span>
-              <span>
-                Total tracked:{" "}
-                <strong className="text-stone-800 dark:text-stone-200">
-                  {totalApplianceKwh} kWh
-                </strong>{" "}
-                ({ecoOptimizedCount} of {appliances.length} eco-optimized)
-              </span>
-            </div>
-          </div>
-
         </div>
 
-        {/* Sidebar Column */}
+        {/* Sidebar Column: Controls & Financials */}
         <aside className="space-y-5">
           {/* Card 1: Energy Controls & Today's Summary */}
           <div className="border border-stone-300 bg-[#f5f1e8] p-5 dark:border-stone-700 dark:bg-[#231f1c]">
@@ -1257,7 +836,433 @@ export default function EnergyPanel() {
               </div>
             </div>
           </div>
+        </aside>
+      </div>
 
+      {/* Energy Goals & Budgeting */}
+      <div className="mt-5 border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+              <div className="flex items-center gap-2.5">
+                <Target className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                    Energy goals & budget
+                  </p>
+                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    Monthly consumption target
+                  </h3>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div
+                className={`flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.08em] ${budgetStatusBadge.className}`}
+              >
+                <budgetStatusBadge.Icon className="h-3.5 w-3.5" />
+                <span>
+                  {budgetStatusBadge.label} · {rawPercent}%
+                </span>
+              </div>
+            </div>
+
+            {/* Metrics grid */}
+            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {/* Target Limit with +/- Adjuster */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Monthly target
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {monthlyBudgetGoal}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
+                </div>
+                {/* Adjuster buttons */}
+                <div className="mt-2.5 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleAdjustBudget(-25)}
+                    disabled={monthlyBudgetGoal <= 150}
+                    aria-label="Decrease target budget by 25 kWh"
+                    className="flex h-6 flex-1 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-200 disabled:opacity-40 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAdjustBudget(25)}
+                    disabled={monthlyBudgetGoal >= 800}
+                    aria-label="Increase target budget by 25 kWh"
+                    className="flex h-6 flex-1 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:bg-stone-200 disabled:opacity-40 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Month to Date Usage */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Month to date
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {currentMonthUsage}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
+                </div>
+                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  Day {daysElapsed} of {cycleDays} ({daysRemaining}d left)
+                </p>
+              </div>
+
+              {/* Remaining Allowance */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Remaining
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span
+                    className={`text-xl font-semibold tracking-tight ${
+                      remainingKwh === 0
+                        ? "text-rose-600 dark:text-rose-400"
+                        : "text-stone-900 dark:text-stone-100"
+                    }`}
+                  >
+                    {remainingKwh.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh</span>
+                </div>
+                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  {Math.max(0, 100 - rawPercent)}% allowance left
+                </p>
+              </div>
+
+              {/* Daily Target Allowance */}
+              <div className="border border-stone-200 bg-[#fbf9f4] p-3 dark:border-stone-700/60 dark:bg-[#211e1c]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Daily allowance
+                </p>
+                <div className="mt-1 flex items-baseline justify-between gap-1">
+                  <span className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {dailyAllowance}
+                  </span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">kWh/d</span>
+                </div>
+                <p className="mt-2.5 text-[11px] text-stone-500 dark:text-stone-400">
+                  Today: {todayUsage} kWh ({todayAllowanceRatio}%)
+                </p>
+              </div>
+            </div>
+
+            {/* Visual Progress Bar Section */}
+            <div className="mt-5">
+              <div className="flex items-center justify-between text-xs font-medium text-stone-600 dark:text-stone-400">
+                <span>
+                  Usage progress: {currentMonthUsage} / {monthlyBudgetGoal} kWh
+                </span>
+                <span className="font-semibold text-stone-900 dark:text-stone-100">
+                  {rawPercent}%
+                </span>
+              </div>
+
+              {/* Main Progress Bar */}
+              <div className="relative mt-2 h-3.5 w-full bg-stone-200 dark:bg-stone-700">
+                <div
+                  className={`h-full transition-all duration-500 ${budgetStatusBadge.barClass}`}
+                  style={{ width: `${percentUsed}%` }}
+                />
+                {/* Milestone tick marks at 25%, 50%, 75% */}
+                <div className="pointer-events-none absolute inset-0">
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
+                    style={{ left: "25%" }}
+                  />
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
+                    style={{ left: "50%" }}
+                  />
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-[#f7f4ed] dark:bg-[#292524]"
+                    style={{ left: "75%" }}
+                  />
+                </div>
+              </div>
+
+              {/* Scale Milestones */}
+              <div className="mt-1.5 flex justify-between text-[10px] text-stone-500 dark:text-stone-400">
+                <span>0 kWh</span>
+                <span>25%</span>
+                <span>50%</span>
+                <span>75%</span>
+                <span>100% ({monthlyBudgetGoal} kWh)</span>
+              </div>
+            </div>
+
+            {/* Target Presets & Forecast */}
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/80 pt-4 dark:border-stone-700/80">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="mr-1 text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                  Target presets:
+                </span>
+                {[250, 300, 350, 400, 500].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setMonthlyBudgetGoal(preset)}
+                    className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                      monthlyBudgetGoal === preset
+                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                        : "border-stone-300 bg-white text-stone-600 hover:bg-stone-200/70 dark:border-stone-700 dark:bg-stone-800/80 dark:text-stone-400 dark:hover:bg-stone-700"
+                    }`}
+                  >
+                    {preset} kWh
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                Forecast: Projected ~
+                <strong className="text-stone-800 dark:text-stone-200">
+                  {projectedUsage} kWh
+                </strong>{" "}
+                by month-end (
+                {projectedUsage <= monthlyBudgetGoal
+                  ? `${monthlyBudgetGoal - projectedUsage} kWh under`
+                  : `${projectedUsage - monthlyBudgetGoal} kWh over`}
+                )
+              </p>
+            </div>
+          </div>
+
+      {/* Secondary Grid: Appliance Breakdown & Room/Event Activity */}
+      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        {/* Appliance-Level Consumption Breakdown */}
+        <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 pb-4 dark:border-stone-700/80">
+              <div className="flex items-center gap-2.5">
+                <Layers className="h-4 w-4 text-stone-600 dark:text-stone-300" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                    Sub-metering
+                  </p>
+                  <h3 className="mt-0.5 text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    Appliance-level consumption
+                  </h3>
+                </div>
+              </div>
+
+              {/* Live Aggregate Draw Badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
+                  Live draw:
+                </span>
+                <span className="border border-stone-300 bg-[#fbf9f4] px-2.5 py-1 text-xs font-semibold text-stone-800 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200">
+                  {totalApplianceKw} kW active
+                </span>
+              </div>
+            </div>
+
+            {/* Filter and Sort Toolbar */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              {/* Category Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {["All", "Climate", "Mobility", "Water", "Kitchen", "Utility", "Lighting", "Media"].map(
+                  (cat) => {
+                    const count =
+                      cat === "All"
+                        ? appliances.length
+                        : appliances.filter((a) => a.category === cat).length;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setApplianceCategory(cat)}
+                        className={`border px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+                          applianceCategory === cat
+                            ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                            : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/60 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/60"
+                        }`}
+                      >
+                        {cat} ({count})
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+
+              {/* Sort Selector */}
+              <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+                <span className="text-[11px] font-medium uppercase tracking-[0.08em]">Sort:</span>
+                {[
+                  { id: "usage", label: "Usage" },
+                  { id: "power", label: "Power" },
+                  { id: "name", label: "Name" },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setApplianceSortBy(s.id)}
+                    className={`border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      applianceSortBy === s.id
+                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-500 dark:bg-stone-200 dark:text-stone-900"
+                        : "border-stone-300 bg-transparent text-stone-600 hover:bg-stone-200/50 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-700/50"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Appliances List */}
+            <div className="mt-4 space-y-2.5">
+              {filteredAppliances.map((appliance) => {
+                const isExpanded = expandedApplianceId === appliance.id;
+                const ApplianceIcon = appliance.icon;
+                const isActive = appliance.status === "Active";
+
+                return (
+                  <div
+                    key={appliance.id}
+                    className="border border-stone-200/90 bg-[#fcfaf5] transition-colors dark:border-stone-700/70 dark:bg-[#201d1b]"
+                  >
+                    {/* Main Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-stone-300 bg-[#f5f1e8] dark:border-stone-600 dark:bg-[#292524]">
+                          <ApplianceIcon className="h-4 w-4 text-stone-700 dark:text-stone-300" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                              {appliance.name}
+                            </h4>
+                            <span
+                              className={`flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                                isActive
+                                  ? "border-emerald-800/25 bg-emerald-50 text-emerald-800 dark:border-emerald-400/25 dark:bg-emerald-950 dark:text-emerald-400"
+                                  : "border-stone-300 bg-stone-100 text-stone-600 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400"
+                              }`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  isActive
+                                    ? "bg-emerald-600 dark:bg-emerald-400"
+                                    : "bg-stone-400 dark:bg-stone-500"
+                                }`}
+                              />
+                              {appliance.status}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
+                            {appliance.model} · {appliance.category}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Power & Energy Metrics */}
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                            {appliance.currentKw.toFixed(2)} kW
+                          </p>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">
+                            {appliance.todayKwh.toFixed(1)} kWh ({appliance.percentage}%)
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedApplianceId(isExpanded ? null : appliance.id)
+                          }
+                          aria-label={`${isExpanded ? "Collapse" : "Expand"} ${appliance.name} details`}
+                          className="flex h-7 w-7 items-center justify-center border border-stone-300 bg-stone-100 text-stone-600 transition hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700"
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar of Consumption Share */}
+                    <div className="px-3 pb-3">
+                      <div className="h-1.5 w-full bg-stone-200 dark:bg-stone-700">
+                        <div
+                          className="h-full bg-stone-600 transition-all duration-500 dark:bg-stone-400"
+                          style={{ width: `${appliance.percentage * 2.5}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Expanded Drawer Telemetry */}
+                    {isExpanded && (
+                      <div className="border-t border-stone-200 bg-[#f7f4ed]/80 px-4 py-3 dark:border-stone-700/60 dark:bg-[#1a1816]/70">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                              Current telemetry
+                            </p>
+                            <p className="mt-0.5 text-xs text-stone-800 dark:text-stone-200">
+                              {appliance.statusDetail}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-stone-500 dark:text-stone-400">
+                              Peak demand today
+                            </p>
+                            <p className="mt-0.5 text-xs text-stone-800 dark:text-stone-200">
+                              {appliance.peakDraw}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-start sm:justify-end">
+                            <button
+                              type="button"
+                              onClick={() => toggleApplianceEco(appliance.id)}
+                              className={`flex items-center gap-1.5 border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                                appliance.ecoOptimized
+                                  ? "border-emerald-800/30 bg-emerald-50 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-400"
+                                  : "border-stone-400 bg-white text-stone-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300"
+                              }`}
+                            >
+                              <Leaf className="h-3 w-3" />
+                              <span>
+                                {appliance.ecoOptimized ? "Eco optimized" : "Eco standard"}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Summary Footer */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 pt-3 text-xs text-stone-500 dark:text-stone-400">
+              <span>
+                {filteredAppliances.length} of {appliances.length} appliances displayed
+              </span>
+              <span>
+                Total tracked:{" "}
+                <strong className="text-stone-800 dark:text-stone-200">
+                  {totalApplianceKwh} kWh
+                </strong>{" "}
+                ({ecoOptimizedCount} of {appliances.length} eco-optimized)
+              </span>
+            </div>
+          </div>
+
+        {/* Sidebar Column: Room Consumption & Events */}
+        <aside className="space-y-5">
           {/* Card 3: Consumption by room */}
           <div className="border border-stone-300 bg-[#f7f4ed] p-5 dark:border-stone-700 dark:bg-[#292524]">
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">

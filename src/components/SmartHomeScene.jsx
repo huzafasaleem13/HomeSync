@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
   CloudSun,
+  Droplets,
   Lamp,
   Lock,
   Minus,
@@ -212,7 +213,7 @@ export default function SmartHomeScene({ darkMode }) {
         </p>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_310px] items-start">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_310px]">
         <div className="h-[560px] overflow-hidden border border-stone-300 bg-[#e7e2d7] dark:border-stone-700 dark:bg-[#292524]">
           <Canvas
             shadows
@@ -363,123 +364,125 @@ export default function SmartHomeScene({ darkMode }) {
           </Canvas>
         </div>
 
-        <aside className="border border-stone-300 bg-[#f5f1e8] p-4 dark:border-stone-700 dark:bg-[#231f1c]">
-          {/* Outdoor climate widget */}
-          <div className="flex items-center justify-between border border-stone-300 bg-[#f7f4ed] px-3.5 py-2.5 dark:border-stone-700 dark:bg-[#292524]">
-            <div className="flex items-center gap-2.5">
-              <CloudSun className="h-5 w-5 shrink-0 text-stone-600 dark:text-stone-300" />
-              <div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                    {outdoorWeather.temperature}
-                  </span>
-                  <span className="text-[11px] text-stone-500 dark:text-stone-400">
-                    {outdoorWeather.condition}
-                  </span>
+        <aside className="flex flex-col justify-between border border-stone-300 bg-[#f5f1e8] p-4 xl:h-[560px] dark:border-stone-700 dark:bg-[#231f1c]">
+          <div className="space-y-3">
+            {/* Outdoor climate widget */}
+            <div className="flex items-center justify-between border border-stone-300 bg-[#f7f4ed] px-3.5 py-2.5 dark:border-stone-700 dark:bg-[#292524]">
+              <div className="flex items-center gap-2.5">
+                <CloudSun className="h-5 w-5 shrink-0 text-stone-600 dark:text-stone-300" />
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                      {outdoorWeather.temperature}
+                    </span>
+                    <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                      {outdoorWeather.condition}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-stone-500 dark:text-stone-400">
+                    Humidity {outdoorWeather.humidity} · Wind {outdoorWeather.wind}
+                  </p>
                 </div>
-                <p className="text-[10px] text-stone-500 dark:text-stone-400">
-                  Humidity {outdoorWeather.humidity} · Wind {outdoorWeather.wind}
-                </p>
               </div>
-            </div>
-            <span className="border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-stone-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300">
-              UV {outdoorWeather.uvIndex}
-            </span>
-          </div>
-
-          {/* Room quick switcher */}
-          <div className="mt-3.5">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
-              Rooms
-            </p>
-            <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-2">
-              {rooms.map((room) => {
-                const isSelected = room.id === selectedRoomId;
-                return (
-                  <button
-                    key={room.id}
-                    type="button"
-                    onClick={() => setSelectedRoomId(room.id)}
-                    onMouseEnter={() => setHoveredRoomId(room.id)}
-                    onMouseLeave={() => setHoveredRoomId((current) => (current === room.id ? null : current))}
-                    className={`truncate border px-2 py-1.5 text-left text-xs font-medium transition-colors duration-150 ${
-                      isSelected
-                        ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-400 dark:bg-stone-200 dark:text-stone-900"
-                        : room.id === hoveredRoomId
-                        ? "border-stone-400 bg-stone-200/60 text-stone-900 dark:border-stone-600 dark:bg-stone-700/60 dark:text-stone-100"
-                        : "border-stone-300 bg-white/70 text-stone-600 hover:bg-stone-200/50 dark:border-stone-700 dark:bg-[#1f1c1a]/60 dark:text-stone-400 dark:hover:bg-stone-700/50"
-                    }`}
-                  >
-                    {room.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Selected room details */}
-          <div className="mt-3.5 border border-stone-300 bg-[#f7f4ed] p-3 dark:border-stone-700 dark:bg-[#292524]">
-            <div className="flex items-center justify-between border-b border-stone-200/80 pb-2 dark:border-stone-700/80">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
-                  Active room
-                </p>
-                <h3 className="text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-                  {selectedRoom.name}
-                </h3>
-              </div>
-              <span className="text-[11px] text-stone-500 dark:text-stone-400">
-                {getDeviceCount(selectedRoomId)}
+              <span className="border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-stone-700 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                UV {outdoorWeather.uvIndex}
               </span>
             </div>
 
-            <div className="mt-2.5 space-y-2 text-xs">
-              {/* Climate control row */}
-              <div className="flex items-center justify-between">
-                <span className="text-stone-600 dark:text-stone-400">Climate</span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => adjustTemperature(-1)}
-                    className="flex h-5 w-5 items-center justify-center border border-stone-300 bg-white text-stone-600 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
-                    aria-label="Decrease temperature"
-                  >
-                    <Minus className="h-2.5 w-2.5" />
-                  </button>
-                  <span className="min-w-8 text-center font-semibold text-stone-800 dark:text-stone-200">
-                    {temperatures[selectedRoomId]}°C
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => adjustTemperature(1)}
-                    className="flex h-5 w-5 items-center justify-center border border-stone-300 bg-white text-stone-600 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
-                    aria-label="Increase temperature"
-                  >
-                    <Plus className="h-2.5 w-2.5" />
-                  </button>
+            {/* Room quick switcher */}
+            <div>
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+                Rooms
+              </p>
+              <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-2">
+                {rooms.map((room) => {
+                  const isSelected = room.id === selectedRoomId;
+                  return (
+                    <button
+                      key={room.id}
+                      type="button"
+                      onClick={() => setSelectedRoomId(room.id)}
+                      onMouseEnter={() => setHoveredRoomId(room.id)}
+                      onMouseLeave={() => setHoveredRoomId((current) => (current === room.id ? null : current))}
+                      className={`truncate border px-2 py-1.5 text-left text-xs font-medium transition-colors duration-150 ${
+                        isSelected
+                          ? "border-stone-700 bg-stone-800 text-stone-50 dark:border-stone-400 dark:bg-stone-200 dark:text-stone-900"
+                          : room.id === hoveredRoomId
+                          ? "border-stone-400 bg-stone-200/60 text-stone-900 dark:border-stone-600 dark:bg-stone-700/60 dark:text-stone-100"
+                          : "border-stone-300 bg-white/70 text-stone-600 hover:bg-stone-200/50 dark:border-stone-700 dark:bg-[#1f1c1a]/60 dark:text-stone-400 dark:hover:bg-stone-700/50"
+                      }`}
+                    >
+                      {room.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected room details */}
+            <div className="border border-stone-300 bg-[#f7f4ed] p-3 dark:border-stone-700 dark:bg-[#292524]">
+              <div className="flex items-center justify-between border-b border-stone-200/80 pb-2 dark:border-stone-700/80">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+                    Active room
+                  </p>
+                  <h3 className="text-base font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+                    {selectedRoom.name}
+                  </h3>
                 </div>
+                <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                  {getDeviceCount(selectedRoomId)}
+                </span>
               </div>
 
-              {/* Main lighting inline row */}
-              <div className="flex items-center justify-between border-t border-stone-200/60 pt-1.5 dark:border-stone-700/60">
-                <span className="text-stone-600 dark:text-stone-400">Illumination</span>
-                <button
-                  type="button"
-                  onClick={toggleSelectedRoomLight}
-                  className={`border px-2.5 py-0.5 text-[11px] font-semibold transition-colors duration-150 ${
-                    lights[selectedRoomId]
-                      ? "border-emerald-800/30 bg-emerald-50 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-400"
-                      : "border-stone-300 bg-white text-stone-600 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700"
-                  }`}
-                >
-                  Lights {lights[selectedRoomId] ? "On" : "Off"}
-                </button>
+              <div className="mt-2.5 space-y-2 text-xs">
+                {/* Climate control row */}
+                <div className="flex items-center justify-between">
+                  <span className="text-stone-600 dark:text-stone-400">Climate</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => adjustTemperature(-1)}
+                      className="flex h-5 w-5 items-center justify-center border border-stone-300 bg-white text-stone-600 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+                      aria-label="Decrease temperature"
+                    >
+                      <Minus className="h-2.5 w-2.5" />
+                    </button>
+                    <span className="min-w-8 text-center font-semibold text-stone-800 dark:text-stone-200">
+                      {temperatures[selectedRoomId]}°C
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => adjustTemperature(1)}
+                      className="flex h-5 w-5 items-center justify-center border border-stone-300 bg-white text-stone-600 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+                      aria-label="Increase temperature"
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Main lighting inline row */}
+                <div className="flex items-center justify-between border-t border-stone-200/60 pt-1.5 dark:border-stone-700/60">
+                  <span className="text-stone-600 dark:text-stone-400">Illumination</span>
+                  <button
+                    type="button"
+                    onClick={toggleSelectedRoomLight}
+                    className={`border px-2.5 py-0.5 text-[11px] font-semibold transition-colors duration-150 ${
+                      lights[selectedRoomId]
+                        ? "border-emerald-800/30 bg-emerald-50 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-950 dark:text-emerald-400"
+                        : "border-stone-300 bg-white text-stone-600 hover:bg-stone-200 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700"
+                    }`}
+                  >
+                    Lights {lights[selectedRoomId] ? "On" : "Off"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Room devices section */}
-          <div className="mt-3.5 border-t border-stone-300 pt-3 dark:border-stone-700">
+          <div className="mt-3 flex min-h-0 flex-1 flex-col border-t border-stone-300 pt-3 dark:border-stone-700">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
                 Room devices ({roomDevices[selectedRoomId]?.length || 0})
@@ -500,7 +503,7 @@ export default function SmartHomeScene({ darkMode }) {
             </div>
 
             {isDeviceListExpanded && (
-              <div className="mt-2 max-h-40 space-y-1.5 overflow-y-auto pr-0.5">
+              <div className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-0.5">
                 {roomDevices[selectedRoomId]?.map((device) => {
                   const DeviceIcon = getDeviceIcon(device.type);
 

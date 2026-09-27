@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronUp,
   CloudSun,
-  Droplets,
   Lamp,
   Lock,
   Minus,

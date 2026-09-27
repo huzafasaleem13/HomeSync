@@ -1,4 +1,4 @@
-# 🌟 3D Smart Home System — Project Showcase & Presentation Guide
+# 🌟 HomeSync — Project Showcase & Presentation Guide
 
 > **A Next-Generation Architectural IoT Dashboard uniting 3D Spatial Computing, Energy Economics, and Residential Security.**
 
@@ -8,7 +8,7 @@
 
 Traditional smart home dashboards are often fragmented—relying on isolated toggle lists, disjointed vendor apps, or generic cards that fail to convey physical context. 
 
-The **3D Smart Home System** reinvents residential management into a single, architectural control interface. By combining a **Three.js isometric 3D model** with **deep energy economics** and **multi-sensor perimeter telemetry**, homeowners gain immediate spatial intuition and actionable control over their entire living environment.
+**HomeSync** reinvents residential management into a single, architectural control interface. By combining a **Three.js isometric 3D model** with **deep energy economics** and **multi-sensor perimeter telemetry**, homeowners gain immediate spatial intuition and actionable control over their entire living environment.
 
 ---
 
@@ -16,7 +16,7 @@ The **3D Smart Home System** reinvents residential management into a single, arc
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        3D Smart Home System                            │
+│                                HomeSync                                │
 ├──────────────────┬──────────────────┬──────────────────┬───────────────┤
 │  3D Spatial Web  │  Energy Economics│ Security Center  │ Smart Scenes  │
 │  Interactive     │  Sub-metering,   │ Perimeter mesh,  │ Orchestrated  │

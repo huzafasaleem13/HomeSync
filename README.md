@@ -1,4 +1,4 @@
-# 🏛️ 3D Smart Home System & Energy Management Dashboard
+# 🏛️ HomeSync — 3D Smart Home System & Energy Dashboard
 
 [![React](https://img.shields.io/badge/React-19.2-61dafb?style=flat-square&logo=react)](https://react.dev/)
 [![Three.js](https://img.shields.io/badge/Three.js-0.186-black?style=flat-square&logo=three.js)](https://threejs.org/)
@@ -6,7 +6,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.3-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![ESLint](https://img.shields.io/badge/ESLint-Clean_0_Warnings-4b32c3?style=flat-square&logo=eslint)](https://eslint.org/)
 
-An architectural, brutalist-inspired residential automation and monitoring dashboard. Built with **React 19**, **Three.js / React Three Fiber**, and **Tailwind CSS v4**, this application unites spatial 3D visualization, intelligent automated scenes, whole-home security telemetry, sub-metered energy analytics, and financial solar savings modeling into a cohesive interface.
+**HomeSync** is an architectural, brutalist-inspired residential automation and monitoring dashboard. Built with **React 19**, **Three.js / React Three Fiber**, and **Tailwind CSS v4**, this application unites spatial 3D visualization, intelligent automated scenes, whole-home security telemetry, sub-metered energy analytics, and financial solar savings modeling into a cohesive interface.
 
 ---
 
@@ -115,8 +115,8 @@ flowchart TD
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/3D-Home-System.git
-   cd 3D-Home-System
+   git clone https://github.com/huzafasaleem13/HomeSync.git
+   cd HomeSync
    ```
 2. Install dependencies:
    ```bash
@@ -151,7 +151,7 @@ npm run lint
 ## 📂 Project Structure
 
 ```text
-3D-Home-System/
+HomeSync/
 ├── public/                     # Static public assets
 ├── src/
 │   ├── assets/                 # SVGs and images
